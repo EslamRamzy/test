@@ -8,40 +8,43 @@ import { useOverview } from '@/features/admin/hooks/useOverview';
  * Order and module list per docs/architecture/07 §1/§51 exactly: Dashboard,
  * Projects, Articles, Security Research, Skills, Technologies,
  * Certifications, Experience, Education, Timeline, Media, Messages,
- * Settings, Audit Logs.
+ * Settings, Audit Logs. Analytics and Profile are deliberately NOT in this
+ * list either — §51 names exactly these 14, and both are reached from a
+ * link on the Settings page instead (same "closest-fit module, not a new
+ * nav entry" pattern as Skill Categories living under Skills).
  *
- * `enabled: false` on every module besides Dashboard — Phase 8 ("content
- * management") is what builds `/admin/{module}`'s List/Create/Edit screens
- * (doc 07 §2); linking to a route that 404s today would be worse than
- * showing it, correctly, as not-yet-available. Flip an item's `enabled` to
- * `true` in the same commit that ships its route, nothing else here needs
- * to change.
+ * `enabled: false` remains only on Media and Messages — Phase 8 built
+ * every other module's List/Create/Edit screens (doc 07 §2); those two are
+ * Phase 9's own scope (the media library) and were never in this phase's
+ * task list, so linking to them today would 404. Flip an item's `enabled`
+ * to `true` in the same commit that ships its route, nothing else here
+ * needs to change.
  */
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin', icon: 'bi-speedometer2', enabled: true },
-  { label: 'Projects', href: '/admin/projects', icon: 'bi-kanban', enabled: false },
-  { label: 'Articles', href: '/admin/articles', icon: 'bi-file-text', enabled: false },
+  { label: 'Projects', href: '/admin/projects', icon: 'bi-kanban', enabled: true },
+  { label: 'Articles', href: '/admin/articles', icon: 'bi-file-text', enabled: true },
   {
     label: 'Security Research',
     href: '/admin/security-research',
     icon: 'bi-shield-lock',
-    enabled: false,
+    enabled: true,
   },
-  { label: 'Skills', href: '/admin/skills', icon: 'bi-stars', enabled: false },
-  { label: 'Technologies', href: '/admin/technologies', icon: 'bi-cpu', enabled: false },
+  { label: 'Skills', href: '/admin/skills', icon: 'bi-stars', enabled: true },
+  { label: 'Technologies', href: '/admin/technologies', icon: 'bi-cpu', enabled: true },
   {
     label: 'Certifications',
     href: '/admin/certifications',
     icon: 'bi-patch-check',
-    enabled: false,
+    enabled: true,
   },
-  { label: 'Experience', href: '/admin/experience', icon: 'bi-briefcase', enabled: false },
-  { label: 'Education', href: '/admin/education', icon: 'bi-mortarboard', enabled: false },
-  { label: 'Timeline', href: '/admin/timeline', icon: 'bi-clock-history', enabled: false },
+  { label: 'Experience', href: '/admin/experience', icon: 'bi-briefcase', enabled: true },
+  { label: 'Education', href: '/admin/education', icon: 'bi-mortarboard', enabled: true },
+  { label: 'Timeline', href: '/admin/timeline', icon: 'bi-clock-history', enabled: true },
   { label: 'Media', href: '/admin/media', icon: 'bi-images', enabled: false },
   { label: 'Messages', href: '/admin/messages', icon: 'bi-envelope', enabled: false },
-  { label: 'Settings', href: '/admin/settings', icon: 'bi-gear', enabled: false },
-  { label: 'Audit Logs', href: '/admin/audit-logs', icon: 'bi-journal-text', enabled: false },
+  { label: 'Settings', href: '/admin/settings', icon: 'bi-gear', enabled: true },
+  { label: 'Audit Logs', href: '/admin/audit-logs', icon: 'bi-journal-text', enabled: true },
 ] as const;
 
 function isActive(pathname: string, href: string): boolean {

@@ -1,6 +1,7 @@
 'use client';
 
 import type { SiteSettingRow } from '@portfolio/shared';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/features/admin/components/ToastProvider';
 import { useBulkUpdateSettings, useSettings } from '@/features/admin/settings/client';
@@ -86,7 +87,19 @@ export default function SettingsPage(): React.JSX.Element {
 
   return (
     <div className="admin-resource-page">
-      <h1 className="h4 mb-4">Settings</h1>
+      <div className="admin-resource-page__header">
+        <h1 className="h4 mb-0">Settings</h1>
+        {/* Profile and Analytics have no Sidebar entry of their own — doc07
+            §51's sidebar list names exactly 14 items and neither is one of
+            them — so they're reached from here instead, the same
+            closest-fit-module pattern Skill Categories uses under Skills. */}
+        <Link href="/admin/profile" className="btn btn-outline-secondary btn-sm ms-auto">
+          Profile
+        </Link>
+        <Link href="/admin/analytics" className="btn btn-outline-secondary btn-sm">
+          Analytics
+        </Link>
+      </div>
       {settingsQuery.data.length === 0 ? (
         <p className="text-body-secondary">No settings recorded yet.</p>
       ) : (
