@@ -1221,3 +1221,68 @@
     animation: none;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Admin shell (docs/architecture/07): structurally and visually separate
+// from the public site — no navbar, no footer, no motion system. `--color-
+// accent-2` (cyan — already the Security section's accent, design concept
+// §Security) rather than `--color-accent` (amber, the public brand color)
+// is what does the "visually separate" work: same token system, same
+// light/dark themes, a different accent is enough to read as a different
+// surface without inventing a second palette Phase 7 has no real need for.
+// ---------------------------------------------------------------------------
+.admin-shell {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+// `.admin-auth`: the centered card both LoginForm and ChangePasswordForm
+// render inside (`(admin)/admin/login` and `/admin/change-password`) —
+// there is no Sidebar/Topbar chrome on either, since neither assumes an
+// established session yet.
+.admin-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--space-5);
+}
+
+.admin-auth__card {
+  width: 100%;
+  max-width: 380px;
+  padding: var(--space-6);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.admin-auth__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--color-text);
+}
+
+.admin-auth__brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent-2);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent-2) 18%, transparent);
+}
+
+.admin-auth__title {
+  margin-bottom: var(--space-4);
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}

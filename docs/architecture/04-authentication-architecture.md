@@ -177,10 +177,11 @@ export async function serverFetch(path: string, init?: RequestInit) {
 `API_INTERNAL_URL` points at the container-internal address (`http://api:4000`), so server-side
 traffic never leaves the host. Public data fetching uses a separate cached client with no cookies.
 
-**Middleware is a redirect, not a guard.** `apps/web/middleware.ts` redirects unauthenticated
-`/admin/*` requests to the login page based on cookie presence only. It does **not** verify the JWT
-and is **not** a security control — every admin API call is independently authenticated by Express
-(§26: never rely on hiding the UI).
+**Proxy is a redirect, not a guard.** `apps/web/proxy.ts` (Next.js's `middleware.ts` file
+convention was renamed to `proxy.ts` — same mechanism, same one-file-per-app convention) redirects
+unauthenticated `/admin/*` requests to the login page based on cookie presence only. It does **not**
+verify the JWT and is **not** a security control — every admin API call is independently
+authenticated by Express (§26: never rely on hiding the UI).
 
 ## 8. Bootstrap and recovery
 

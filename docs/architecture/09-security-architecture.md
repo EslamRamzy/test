@@ -51,7 +51,7 @@ X-Powered-By: <removed>
 ```
 
 CSP is nonce-based, not hash-based, because Next.js injects inline bootstrap scripts; the nonce is
-generated per request in `middleware.ts` and threaded through. It is deployed in
+generated per request in `proxy.ts` and threaded through. It is deployed in
 `Content-Security-Policy-Report-Only` first (Phase 11), then enforced once the report endpoint is
 quiet — an enforced CSP that breaks the site is worse than a measured rollout.
 

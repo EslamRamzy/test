@@ -66,7 +66,7 @@ portfolio/
 │       │   ├── lib/                         api/ · markdown/ · seo/ · utils/
 │       │   ├── styles/                      _tokens · _bootstrap-overrides · _themes · globals.scss
 │       │   ├── types/
-│       │   └── middleware.ts                /admin redirect only (not a security control)
+│       │   └── proxy.ts                     /admin redirect only (not a security control)
 │       ├── e2e/                             Playwright: public/ · admin/ · a11y/ · fixtures/
 │       ├── public/                          static assets only — never content
 │       ├── next.config.ts · tsconfig.json · playwright.config.ts · vitest.config.ts
