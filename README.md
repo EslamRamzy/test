@@ -3,15 +3,18 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 7 of 16 — admin shell.**
+> **Status: Phase 8 of 16 — content management.**
 > Database (Phase 2), backend foundation (Phase 3), auth (Phase 4), the full public REST API
-> (Phase 5), the full public website carrying the "Amber Signal" visual identity, and now the
-> admin shell: login/logout/session-expiry (real single-flight token refresh, verified against a
-> real browser and a real expired token, not simulated), route protection, a Sidebar/Topbar shell,
-> and a dashboard overview with real counters — all render from the real API, zero hardcoded
-> content. Full CRUD for the 13 content modules is Phase 8. See [`docs/`](docs/README.md), the
-> [Phase 7 report](docs/phases/phase-07-report.md), the
-> [Phase 6 report](docs/phases/phase-06-report.md), and the
+> (Phase 5), the full public website carrying the "Amber Signal" visual identity, the admin shell
+> (Phase 7), and now full admin CRUD for all 13 content modules: publish workflow with
+> readiness checks, reordering, the project tabbed editor (case-study sections, technologies,
+> gallery images, security assessments/tests/findings), the markdown editor, tags/categories, and
+> on-demand revalidation on publish. The source-code-free content goal is demonstrated: a project,
+> an article and a security research entry created and published entirely through `/admin` render
+> correctly on the public site, with a real audit trail for every step (verified against a real
+> browser, not simulated). Media management is Phase 9. See [`docs/`](docs/README.md), the
+> [Phase 8 report](docs/phases/phase-08-report.md), the
+> [Phase 7 report](docs/phases/phase-07-report.md), and the
 > [redesign report](docs/design/amber-signal-redesign.md).
 
 ---

@@ -1,17 +1,21 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 7 of 16 complete** — the admin shell: `GET /admin/overview`, an admin API client
-> with CSRF and single-flight token refresh (doc 04 §6), route protection (`proxy.ts`), login and
-> the bootstrap account's forced password change, a Sidebar/Topbar shell, Toast/ConfirmDialog
-> primitives, and a dashboard overview with real counters. Verified against a real browser and a
-> real API, including a genuinely expired access token (not simulated) and its transparent
-> single-flight refresh. A real cookie bug was found and fixed along the way (see the phase
-> report §4.1) — `secure: isProduction` silently dropped every auth cookie in any real browser
-> outside `NODE_ENV=production`, which would have broken login the moment this phase's frontend
-> tried to authenticate for real. axe reports zero violations on both new pages, both themes. See
-> the [Phase 7 report](phases/phase-07-report.md), the
+> **Status: Phase 8 of 16 complete** — full admin CRUD for all 13 content modules (technologies,
+> skills/categories, certifications, experience, education, timeline, social links, tags, article
+> categories, articles, security research, projects, plus settings/profile/audit-log/analytics
+> screens), a publish workflow with readiness checks on Articles/Security Research/Projects,
+> drag-free reordering, the project tabbed editor (overview, case-study sections built from a
+> visible/hidden section manager, technologies, gallery images, security assessments/tests/findings,
+> SEO), a markdown editor, tags/categories, and on-demand revalidation on publish. Verified against a
+> real browser and a real API: a project, an article and a security research entry were created and
+> published entirely through `/admin` and rendered correctly on the public site, with a real audit
+> trail recorded at every step. A generic `withFieldOverrides` type bug was found and fixed along the
+> way (see the phase report §4) — it silently kept a swapped-out field's *original* type, which
+> happened to be harmless for date-only overrides but broke for Certifications' numeric
+> `certificateMediaId`. See the [Phase 8 report](phases/phase-08-report.md), the
+> [Phase 7 report](phases/phase-07-report.md), the
 > [Phase 6 report](phases/phase-06-report.md), and the
-> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 8 (Content management) is
+> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 9 (Media management) is
 > unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
@@ -46,6 +50,7 @@
 | 5 | [Public API](phases/phase-05-report.md) |
 | 6 | [Public website](phases/phase-06-report.md) |
 | 7 | [Admin shell](phases/phase-07-report.md) |
+| 8 | [Content management](phases/phase-08-report.md) |
 
 ## Design
 
