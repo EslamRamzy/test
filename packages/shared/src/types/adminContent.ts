@@ -236,3 +236,139 @@ export interface SecurityResearchAdminRow {
   tags: ResearchTagRow[];
   references: ResearchReferenceRow[];
 }
+
+/** The full `Media` row shape (`Project.coverMedia: true` in `projectRepository.ts`'s `ADMIN_INCLUDE` — a plain `true`, not a `select`, unlike Article/Certification/SecurityResearch's narrower `coverMedia` shape). Phase 9's media library is what actually populates these beyond the id an admin can type in today. */
+export interface AdminMediaFullRow {
+  id: number;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  width: number | null;
+  height: number | null;
+  checksumSha256: string;
+  storagePath: string;
+  altText: string | null;
+  kind: string;
+  uploadedBy: number | null;
+  createdAt: string;
+}
+
+export interface ProjectImageRow {
+  id: number;
+  projectId: number;
+  mediaId: number;
+  caption: string | null;
+  displayOrder: number;
+  media: AdminMediaFullRow;
+}
+
+export interface ProjectFeatureRow {
+  id: number;
+  projectId: number;
+  title: string;
+  description: string | null;
+  displayOrder: number;
+}
+
+export interface ProjectSectionRow {
+  id: number;
+  projectId: number;
+  sectionKey: string;
+  title: string;
+  body: string | null;
+  displayOrder: number;
+  visible: boolean;
+}
+
+export interface ProjectTechnologyRow {
+  projectId: number;
+  technologyId: number;
+  technology: TechnologyRow;
+}
+
+export interface SecurityAssessmentTestRow {
+  id: number;
+  assessmentId: number;
+  testType: string;
+  result: string;
+  notes: string | null;
+  displayOrder: number;
+}
+
+export interface SecurityFindingRow {
+  id: number;
+  assessmentId: number;
+  title: string;
+  severity: string;
+  description: string | null;
+  impact: string | null;
+  affectedComponent: string | null;
+  remediation: string | null;
+  status: string;
+  cweId: string | null;
+  isPublic: boolean;
+  discoveredAt: string | null;
+  resolvedAt: string | null;
+  displayOrder: number;
+}
+
+export interface SecurityAssessmentRow {
+  id: number;
+  projectId: number;
+  title: string;
+  scope: string | null;
+  methodology: string | null;
+  summary: string | null;
+  status: string;
+  isPublic: boolean;
+  assessedAt: string | null;
+  retestedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  tests: SecurityAssessmentTestRow[];
+  findings: SecurityFindingRow[];
+}
+
+/**
+ * `projectRepository.ts`'s own `ADMIN_INCLUDE` — every one of doc07 §3's
+ * tabbed-editor tabs (Overview · Case Study · Technologies · Media ·
+ * Security · SEO) reads from this ONE row; `assessments` already carries
+ * its own `tests`/`findings` nested, so the Security tab needs no separate
+ * fetch to render them, only its own endpoints to mutate them.
+ */
+export interface ProjectAdminRow {
+  id: number;
+  title: string;
+  slug: string;
+  shortDescription: string;
+  fullDescription: string | null;
+  category: string;
+  status: string;
+  featured: boolean;
+  coverMediaId: number | null;
+  problem: string | null;
+  solution: string | null;
+  architecture: string | null;
+  challenges: string | null;
+  solutionsDetail: string | null;
+  lessonsLearned: string | null;
+  deploymentNotes: string | null;
+  githubUrl: string | null;
+  liveUrl: string | null;
+  securityTested: boolean;
+  securitySummary: string | null;
+  testingSummary: string | null;
+  visibleSectionsJson: string;
+  displayOrder: number;
+  viewCount: number;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  coverMedia: AdminMediaFullRow | null;
+  images: ProjectImageRow[];
+  features: ProjectFeatureRow[];
+  sections: ProjectSectionRow[];
+  technologies: ProjectTechnologyRow[];
+  assessments: SecurityAssessmentRow[];
+}
