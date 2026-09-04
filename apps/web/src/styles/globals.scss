@@ -1,0 +1,33 @@
+@use 'tokens';
+
+/**
+ * Bootstrap is imported from SCSS source rather than the prebuilt CSS so its
+ * variables can be overridden before compilation. Phase 6 adds
+ * `_bootstrap-overrides.scss` and narrows this to only the modules actually
+ * used, which is what keeps the CSS bundle small and stops the site from
+ * looking like a default Bootstrap template (docs/architecture/00 C2).
+ */
+@use 'bootstrap/scss/bootstrap' as *;
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Never remove a focus indicator without replacing it (docs/architecture/06 §10). */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

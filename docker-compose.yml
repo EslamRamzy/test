@@ -1,0 +1,67 @@
+# Production-shaped composition (decision D3: VPS + Docker Compose + Caddy).
+#
+# Two application containers and one named volume. There is no database
+# container — SQLite is a file on the volume, alongside uploaded media.
+#
+# Only Caddy is exposed publicly; the containers talk over the internal network,
+# which is also how Next.js Server Components reach the API without a public
+# round trip. The Caddy service is added in Phase 16 together with the real
+# deployment runbook.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: file:/data/portfolio.db
+      UPLOAD_DIR: /data/uploads
+      CORS_ORIGIN: ${CORS_ORIGIN:?set CORS_ORIGIN}
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:?set PUBLIC_SITE_URL}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:?set COOKIE_DOMAIN}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET}
+      CSRF_SECRET: ${CSRF_SECRET:?set CSRF_SECRET}
+      IP_HASH_SALT: ${IP_HASH_SALT:?set IP_HASH_SALT}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?set REVALIDATE_SECRET}
+    volumes:
+      - portfolio-data:/data
+    # Not published to the host: reachable only through Caddy and the internal
+    # network. Bind to 127.0.0.1 explicitly if you need to attach a scanner.
+    expose:
+      - '4000'
+    networks:
+      - portfolio
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        # Inlined into the browser bundle at build time — see Dockerfile.web.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?set NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      # Internal address: server-side rendering never leaves the host.
+      API_INTERNAL_URL: http://api:4000
+      PUBLIC_SITE_URL: ${PUBLIC_SITE_URL:?set PUBLIC_SITE_URL}
+      REVALIDATE_SECRET: ${REVALIDATE_SECRET:?set REVALIDATE_SECRET}
+    expose:
+      - '3000'
+    networks:
+      - portfolio
+
+volumes:
+  portfolio-data:
+
+networks:
+  portfolio:
+    driver: bridge

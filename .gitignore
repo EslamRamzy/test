@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+out/
+.next/
+*.tsbuildinfo
+
+# Test output
+coverage/
+.tmp/
+playwright-report/
+test-results/
+
+# Environment — never commit real values (docs/architecture/09 §9)
+.env
+.env.*
+!.env.example
+
+# Database (SQLite lives on a volume, never in git)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Runtime data
+uploads/
+backups/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+
+# ---- dependencies -----------------------------------------------------------
+FROM node:22-slim AS deps
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+RUN npm ci --ignore-scripts
+
+# ---- build ------------------------------------------------------------------
+FROM deps AS build
+WORKDIR /app
+
+# NEXT_PUBLIC_* values are inlined into the browser bundle at BUILD time, not
+# read at runtime. The public API origin (decision D1) must therefore be a build
+# argument — setting it only in docker-compose `environment` would leave the
+# client pointing at the localhost fallback.
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+COPY tsconfig.base.json ./
+COPY packages/shared ./packages/shared
+COPY apps/web ./apps/web
+RUN npm run build -w @portfolio/shared \
+ && npm run build -w @portfolio/web
+
+# ---- runtime ----------------------------------------------------------------
+FROM node:22-slim AS runtime
+ENV NODE_ENV=production
+ENV PORT=3000
+WORKDIR /app
+
+# `output: 'standalone'` emits a server plus only the node_modules it traced.
+COPY --from=build /app/apps/web/.next/standalone ./
+COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=build /app/apps/web/public ./apps/web/public
+
+USER node
+EXPOSE 3000
+CMD ["node", "apps/web/server.js"]

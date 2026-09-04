@@ -1,0 +1,37 @@
+{
+  "name": "eslam-ramzy-portfolio",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal portfolio platform \u2014 public site, admin dashboard, REST API",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run build -w @portfolio/shared && npm run dev --workspaces --if-present",
+    "build": "npm run build -w @portfolio/shared && npm run build -w @portfolio/api && npm run build -w @portfolio/web",
+    "typecheck": "npm run build -w @portfolio/shared && npm run typecheck -w @portfolio/api && npm run typecheck -w @portfolio/web",
+    "lint": "eslint . --max-warnings=0",
+    "lint:rules": "node scripts/verify-lint-rules.mjs",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "npm run build -w @portfolio/shared && npm run test --workspaces --if-present",
+    "test:coverage": "npm run build -w @portfolio/shared && npm run test:coverage --workspaces --if-present",
+    "audit:deps": "npm audit --audit-level=high",
+    "clean": "rm -rf node_modules */*/node_modules packages/*/dist apps/api/dist apps/web/.next **/*.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "eslint": "^10.0.0",
+    "eslint-config-prettier": "^10.0.0",
+    "globals": "^16.0.0",
+    "prettier": "^3.9.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.69.0"
+  }
+}
