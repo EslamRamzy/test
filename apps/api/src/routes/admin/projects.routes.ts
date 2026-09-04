@@ -9,8 +9,10 @@ import {
   projectTechnologiesInputSchema,
   projectUpdateSchema,
   reorderSchema,
+  securityAssessmentCreateSchema,
 } from '@portfolio/shared';
 import { Router } from 'express';
+import { assessmentController } from '../../controllers/admin/assessmentController.js';
 import { projectController } from '../../controllers/admin/projectController.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
@@ -158,4 +160,23 @@ projectsRouter.post(
   authorize('project:update'),
   validate({ params: idParamSchema, body: projectFeaturedInputSchema }),
   projectController.setFeatured,
+);
+
+// --- Security assessments (doc03 §5) — nested list/create only; everything
+// else addresses an assessment directly by its own id (assessments.routes.ts).
+// `security:*`, not `project:*` — see that file's own comment on why.
+
+projectsRouter.get(
+  '/:id/assessments',
+  authorize('security:read'),
+  validate({ params: idParamSchema }),
+  assessmentController.listForProject,
+);
+
+projectsRouter.post(
+  '/:id/assessments',
+  csrfProtection,
+  authorize('security:create'),
+  validate({ params: idParamSchema, body: securityAssessmentCreateSchema }),
+  assessmentController.createForProject,
 );
