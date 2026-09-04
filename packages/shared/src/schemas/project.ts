@@ -1,6 +1,6 @@
 import { PROJECT_CATEGORIES } from '../constants/content.js';
 import { z } from 'zod';
-import { httpsUrlSchema, isoDatetimeAsDate, slugSchema } from './primitives.js';
+import { httpsUrlSchema, idSchema, isoDatetimeAsDate, slugSchema } from './primitives.js';
 
 /**
  * `projects` — the most complex module (doc 07 §3: "Tabbed editor:
@@ -110,3 +110,13 @@ export type ProjectSectionsUpdateInput = z.infer<typeof projectSectionsUpdateSch
 /** `POST /admin/projects/:id/featured` — its own endpoint (doc 03 §5) rather than folded into the general update, since toggling this one flag from the project list is the common case (doc 07 §3: "Featured toggle"). */
 export const projectFeaturedInputSchema = z.object({ featured: z.boolean() }).strict();
 export type ProjectFeaturedInput = z.infer<typeof projectFeaturedInputSchema>;
+
+/**
+ * `DELETE /admin/projects/:id/images/:imageId` — a route param schema, not
+ * body/query. `idParamSchema` alone won't do here: `validate()` REPLACES
+ * `req.params` with the parsed object (its own comment says so), so a
+ * schema that only knows about `id` would silently strip `imageId` out of
+ * `req.params` before the controller ever reads it.
+ */
+export const projectImageParamSchema = z.object({ id: idSchema, imageId: idSchema }).strict();
+export type ProjectImageParam = z.infer<typeof projectImageParamSchema>;

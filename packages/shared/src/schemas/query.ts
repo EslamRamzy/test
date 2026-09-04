@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { RESEARCH_CATEGORIES } from '../constants/content.js';
+import { PROJECT_CATEGORIES, RESEARCH_CATEGORIES } from '../constants/content.js';
 import { paginationQuerySchema, slugSchema } from './primitives.js';
 
 /**
@@ -108,3 +108,12 @@ export const researchAdminListQuerySchema = adminListQuerySchema
   })
   .strict();
 export type ResearchAdminListQuery = z.infer<typeof researchAdminListQuerySchema>;
+
+/** `GET /admin/projects` — same reasoning, `category`/`featured` filters the public project list also has (doc03 §3), reused here for the admin table. */
+export const projectAdminListQuerySchema = adminListQuerySchema
+  .extend({
+    category: z.enum(PROJECT_CATEGORIES).optional(),
+    featured: booleanQueryParam,
+  })
+  .strict();
+export type ProjectAdminListQuery = z.infer<typeof projectAdminListQuerySchema>;
