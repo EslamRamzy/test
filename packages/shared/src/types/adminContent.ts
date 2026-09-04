@@ -203,3 +203,36 @@ export interface ArticleAdminRow {
   category: ArticleCategoryRow | null;
   tags: ArticleTagRow[];
 }
+
+export interface ResearchTagRow {
+  researchId: number;
+  tagId: number;
+  tag: TagRow;
+}
+
+export interface ResearchReferenceRow {
+  id: number;
+  researchId: number;
+  label: string;
+  url: string;
+  displayOrder: number;
+}
+
+/** `securityResearchRepository.ts`'s own `ADMIN_INCLUDE` — no `author` (unlike Article) and `category` is a plain enum string, not a relation. */
+export interface SecurityResearchAdminRow {
+  id: number;
+  title: string;
+  slug: string;
+  description: string | null;
+  content: string;
+  category: string;
+  status: string;
+  coverMediaId: number | null;
+  viewCount: number;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  coverMedia: AdminMediaRefRow | null;
+  tags: ResearchTagRow[];
+  references: ResearchReferenceRow[];
+}
