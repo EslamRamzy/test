@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { educationController } from '../../controllers/admin/educationController.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
+import { csrfProtection } from '../../middleware/csrf.js';
 import { adminLimiter } from '../../middleware/rateLimit.js';
 import { validate } from '../../middleware/validate.js';
 
@@ -24,12 +25,14 @@ educationRouter.get(
 );
 educationRouter.post(
   '/',
+  csrfProtection,
   authorize('education:create'),
   validate({ body: educationCreateSchema }),
   educationController.create,
 );
 educationRouter.patch(
   '/reorder',
+  csrfProtection,
   authorize('education:reorder'),
   validate({ body: reorderSchema }),
   educationController.reorder!,
@@ -42,12 +45,14 @@ educationRouter.get(
 );
 educationRouter.patch(
   '/:id',
+  csrfProtection,
   authorize('education:update'),
   validate({ params: idParamSchema, body: educationUpdateSchema }),
   educationController.update,
 );
 educationRouter.delete(
   '/:id',
+  csrfProtection,
   authorize('education:delete'),
   validate({ params: idParamSchema }),
   educationController.remove,

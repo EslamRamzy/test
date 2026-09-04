@@ -61,6 +61,21 @@ function cookieHeader(res: request.Response): string {
   return list.map((entry) => entry.split(';')[0]).join('; ');
 }
 
+/**
+ * `authController.login` rotates `__Secure-csrf` to a brand-new signed
+ * token on every successful login, so the pre-login token `GET /auth/csrf`
+ * returned is stale the instant login succeeds — see
+ * `tests/helpers/adminAuth.ts`'s identical helper for the full story of how
+ * this surfaced (every admin-CRUD test reusing the stale token, masked
+ * only because the admin routes had no `csrfProtection` yet to notice).
+ */
+function extractCookieValue(cookieHeaderValue: string, name: string): string {
+  const prefix = `${name}=`;
+  const pair = cookieHeaderValue.split('; ').find((entry) => entry.startsWith(prefix));
+  if (!pair) throw new Error(`test setup: cookie "${name}" not found in "${cookieHeaderValue}"`);
+  return pair.slice(prefix.length);
+}
+
 async function fetchCsrf(forwardedFor: string) {
   const res = await request(app).get('/api/v1/auth/csrf').set('X-Forwarded-For', forwardedFor);
   const body = res.body as { data: { csrfToken: string } };
@@ -90,7 +105,12 @@ async function login() {
     throw new Error(`test setup: login failed with ${res.status}: ${JSON.stringify(res.body)}`);
   }
 
-  return { cookie: cookieHeader(res), ip, csrfToken };
+  const postLoginCookie = cookieHeader(res);
+  return {
+    cookie: postLoginCookie,
+    ip,
+    csrfToken: extractCookieValue(postLoginCookie, '__Secure-csrf'),
+  };
 }
 
 describe('/api/v1/admin/technologies', () => {

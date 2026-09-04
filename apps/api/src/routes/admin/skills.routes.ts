@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { skillController } from '../../controllers/admin/skillController.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
+import { csrfProtection } from '../../middleware/csrf.js';
 import { adminLimiter } from '../../middleware/rateLimit.js';
 import { validate } from '../../middleware/validate.js';
 
@@ -24,12 +25,14 @@ skillsRouter.get(
 );
 skillsRouter.post(
   '/',
+  csrfProtection,
   authorize('skill:create'),
   validate({ body: skillCreateSchema }),
   skillController.create,
 );
 skillsRouter.patch(
   '/reorder',
+  csrfProtection,
   authorize('skill:reorder'),
   validate({ body: reorderSchema }),
   skillController.reorder!,
@@ -42,12 +45,14 @@ skillsRouter.get(
 );
 skillsRouter.patch(
   '/:id',
+  csrfProtection,
   authorize('skill:update'),
   validate({ params: idParamSchema, body: skillUpdateSchema }),
   skillController.update,
 );
 skillsRouter.delete(
   '/:id',
+  csrfProtection,
   authorize('skill:delete'),
   validate({ params: idParamSchema }),
   skillController.remove,

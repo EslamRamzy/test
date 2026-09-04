@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { certificationController } from '../../controllers/admin/certificationController.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
+import { csrfProtection } from '../../middleware/csrf.js';
 import { adminLimiter } from '../../middleware/rateLimit.js';
 import { validate } from '../../middleware/validate.js';
 
@@ -24,12 +25,14 @@ certificationsRouter.get(
 );
 certificationsRouter.post(
   '/',
+  csrfProtection,
   authorize('certification:create'),
   validate({ body: certificationCreateSchema }),
   certificationController.create,
 );
 certificationsRouter.patch(
   '/reorder',
+  csrfProtection,
   authorize('certification:reorder'),
   validate({ body: reorderSchema }),
   certificationController.reorder!,
@@ -42,12 +45,14 @@ certificationsRouter.get(
 );
 certificationsRouter.patch(
   '/:id',
+  csrfProtection,
   authorize('certification:update'),
   validate({ params: idParamSchema, body: certificationUpdateSchema }),
   certificationController.update,
 );
 certificationsRouter.delete(
   '/:id',
+  csrfProtection,
   authorize('certification:delete'),
   validate({ params: idParamSchema }),
   certificationController.remove,

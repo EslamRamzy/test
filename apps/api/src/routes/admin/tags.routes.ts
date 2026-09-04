@@ -8,6 +8,7 @@ import { Router } from 'express';
 import { tagController } from '../../controllers/admin/tagController.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
+import { csrfProtection } from '../../middleware/csrf.js';
 import { adminLimiter } from '../../middleware/rateLimit.js';
 import { validate } from '../../middleware/validate.js';
 
@@ -31,6 +32,7 @@ tagsRouter.get(
 );
 tagsRouter.post(
   '/',
+  csrfProtection,
   authorize('article:create'),
   validate({ body: tagCreateSchema }),
   tagController.create,
@@ -43,12 +45,14 @@ tagsRouter.get(
 );
 tagsRouter.patch(
   '/:id',
+  csrfProtection,
   authorize('article:update'),
   validate({ params: idParamSchema, body: tagUpdateSchema }),
   tagController.update,
 );
 tagsRouter.delete(
   '/:id',
+  csrfProtection,
   authorize('article:delete'),
   validate({ params: idParamSchema }),
   tagController.remove,

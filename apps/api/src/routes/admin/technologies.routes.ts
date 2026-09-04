@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { technologyController } from '../../controllers/admin/technologyController.js';
 import { authenticate } from '../../middleware/authenticate.js';
 import { authorize } from '../../middleware/authorize.js';
+import { csrfProtection } from '../../middleware/csrf.js';
 import { adminLimiter } from '../../middleware/rateLimit.js';
 import { validate } from '../../middleware/validate.js';
 
@@ -38,6 +39,7 @@ technologiesRouter.get(
 
 technologiesRouter.post(
   '/',
+  csrfProtection,
   authorize('technology:create'),
   validate({ body: technologyCreateSchema }),
   technologyController.create,
@@ -49,6 +51,7 @@ technologiesRouter.post(
 // (e.g. security-research) simply never registers this route at all.
 technologiesRouter.patch(
   '/reorder',
+  csrfProtection,
   authorize('technology:reorder'),
   validate({ body: reorderSchema }),
   technologyController.reorder!,
@@ -63,6 +66,7 @@ technologiesRouter.get(
 
 technologiesRouter.patch(
   '/:id',
+  csrfProtection,
   authorize('technology:update'),
   validate({ params: idParamSchema, body: technologyUpdateSchema }),
   technologyController.update,
@@ -70,6 +74,7 @@ technologiesRouter.patch(
 
 technologiesRouter.delete(
   '/:id',
+  csrfProtection,
   authorize('technology:delete'),
   validate({ params: idParamSchema }),
   technologyController.remove,

@@ -46,6 +46,25 @@ export function cookieHeader(res: request.Response): string {
   return list.map((entry) => entry.split(';')[0]).join('; ');
 }
 
+/**
+ * Reads one cookie's value back out of a `cookieHeader()`-shaped
+ * "name=value; name2=value2" string — needed because `authController.login`
+ * rotates `__Secure-csrf` to a brand-new signed token on every successful
+ * login (`setCsrfCookie(res, generateCsrfToken())`), so the pre-login token
+ * `GET /auth/csrf` returned is stale the instant login succeeds. Confirmed
+ * the hard way: before this existed, every admin-CRUD test here sent that
+ * stale token as `X-CSRF-Token` after login — silently fine only because
+ * the admin routes had no `csrfProtection` mounted yet to notice the
+ * mismatch; wiring it in made every one of these tests fail with a real
+ * 403, not a bug in the routes but in this helper reusing the wrong token.
+ */
+export function extractCookieValue(cookieHeaderValue: string, name: string): string {
+  const prefix = `${name}=`;
+  const pair = cookieHeaderValue.split('; ').find((entry) => entry.startsWith(prefix));
+  if (!pair) throw new Error(`test setup: cookie "${name}" not found in "${cookieHeaderValue}"`);
+  return pair.slice(prefix.length);
+}
+
 let ipCounter = 0;
 /** A fresh, never-reused source IP so tests across files never share a rate-limit bucket. */
 export function freshIp(): string {
@@ -83,5 +102,9 @@ export async function loginAsAdmin(app: Express, origin: string): Promise<AdminS
     );
   }
 
-  return { cookie: cookieHeader(loginRes), ip, csrfToken: csrfBody.data.csrfToken, userId };
+  const cookie = cookieHeader(loginRes);
+  // Not `csrfBody.data.csrfToken` — see `extractCookieValue`'s own comment.
+  const csrfToken = extractCookieValue(cookie, '__Secure-csrf');
+
+  return { cookie, ip, csrfToken, userId };
 }
