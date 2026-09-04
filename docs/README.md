@@ -1,11 +1,13 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 5 of 16 complete** — every public read endpoint (projects, articles, security
-> research, skills, technologies, certifications, experience, education, timeline, social links,
-> search, sitemap data), the `/home` and `/stats` aggregates, and the contact/analytics write
-> endpoints are implemented, draft-isolation tested, and documented in a generated
-> `docs/api/openapi.json`. See the [Phase 5 report](phases/phase-05-report.md). Phase 6 (Public
-> website) is unblocked. No open decisions remain that block current work — see
+> **Status: Phase 6 of 16 complete** — the full public website (all 12 routes, the 10 homepage
+> sections, the case-study renderer, the sanitized markdown pipeline, light/dark theming with no
+> flash) renders entirely from the real Phase 5 API, zero hardcoded content. Lighthouse ≥ 90 on
+> Performance/Accessibility/Best Practices/SEO (three of four at 100 on `/projects`; the one
+> non-100 elsewhere traces to a disposable test-environment gap, not a code defect — see the
+> report) and axe reports zero violations across all 12 routes in both themes. See the
+> [Phase 6 report](phases/phase-06-report.md). Phase 7 (Admin shell) is unblocked. No open
+> decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
 > next phase.
@@ -35,6 +37,9 @@
 | 1 | [Project setup](phases/phase-01-report.md) |
 | 2 | [Database + migrations](phases/phase-02-report.md) |
 | 3 | [Backend foundation](phases/phase-03-report.md) |
+| 4 | [Authentication + authorization](phases/phase-04-report.md) |
+| 5 | [Public API](phases/phase-05-report.md) |
+| 6 | [Public website](phases/phase-06-report.md) |
 
 ## How to review
 

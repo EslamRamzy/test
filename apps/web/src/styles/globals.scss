@@ -1,18 +1,46 @@
 @use 'tokens';
 
 /**
- * Bootstrap is imported from SCSS source rather than the prebuilt CSS so its
- * variables can be overridden before compilation. Phase 6 adds
- * `_bootstrap-overrides.scss` and narrows this to only the modules actually
- * used, which is what keeps the CSS bundle small and stops the site from
- * looking like a default Bootstrap template (docs/architecture/00 C2).
+ * Bootstrap is imported from SCSS source, configured in one place
+ * (`_bootstrap-overrides.scss`), so its own variables can be overridden
+ * before compilation rather than patched after with `!important` — see
+ * that file's header for exactly what is overridden and why.
  */
-@use 'bootstrap/scss/bootstrap' as *;
+@use 'bootstrap-overrides';
+@use 'theme-vars';
+@use 'themes';
+@use 'markdown';
+@use 'bootstrap-icons/font/bootstrap-icons';
 
+// Sticky footer: the public layout's `<main class="flex-grow-1">` only has
+// something to grow INTO if `body` is the flex container in the first
+// place — otherwise a short page leaves the footer floating mid-viewport
+// instead of pinned to the bottom.
 body {
-  background-color: var(--color-bg);
-  color: var(--color-text);
-  font-family: var(--font-sans);
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+/**
+ * Skip-to-content link (docs/architecture/06 §10) — visually hidden until
+ * focused, which is what makes it usable for a keyboard user without being
+ * visible clutter for everyone else.
+ */
+.skip-link {
+  position: absolute;
+  z-index: 1050;
+  top: -100%;
+  left: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent);
+  color: var(--color-on-accent);
+  text-decoration: none;
+
+  &:focus {
+    top: 1rem;
+  }
 }
 
 /* Never remove a focus indicator without replacing it (docs/architecture/06 §10). */
@@ -29,5 +57,22 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+// One-shot entrance reveal (docs/architecture/06 §5): opacity/transform
+// only, 200ms — an IntersectionObserver toggles `.is-visible` once per
+// element; `prefers-reduced-motion` above already neutralises the
+// transition duration for anyone who has asked for that.
+.reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 220ms ease-out,
+    transform 220ms ease-out;
+
+  &.is-visible {
+    opacity: 1;
+    transform: none;
   }
 }

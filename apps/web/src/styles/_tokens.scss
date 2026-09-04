@@ -6,8 +6,12 @@
  * variables the theme switches without a second stylesheet
  * (docs/architecture/06 §5).
  *
- * The palette here is a neutral starting point. The real design pass happens
- * in Phase 6, once there is content to design against.
+ * Theme resolution (docs/architecture/06 §5, "no flash"): `[data-theme]` on
+ * `<html>`, set synchronously by a blocking inline script in `layout.tsx`
+ * before first paint, wins when present. With no explicit choice, the
+ * `prefers-color-scheme` media query decides — the dark values are
+ * declared twice (once per path) rather than layered, so either path alone
+ * is a complete, correct theme with nothing missing.
  */
 
 :root {
@@ -15,11 +19,33 @@
 
   --color-bg: #ffffff;
   --color-surface: #f7f8fa;
+  --color-surface-raised: #ffffff;
   --color-border: #e6e8ec;
   --color-text: #16181d;
   --color-text-muted: #5b6472;
-  --color-accent: #2f6bff;
+  // #2f6bff (the original design-doc blue) measures 4.49:1 against white —
+  // WCAG AA needs 4.5:1 for normal text, and axe correctly flags it on
+  // `.link-primary`/`.text-primary` (confirmed via a real Lighthouse
+  // accessibility audit). Darkened just enough for real margin (5.3:1+
+  // against both `--color-bg` and `--color-surface`) rather than chasing
+  // the threshold exactly.
+  --color-accent: #2760e8;
   --color-accent-soft: #eaf0ff;
+  --color-on-accent: #ffffff;
+
+  // Security-finding severities (docs/architecture/02 §3) — distinct,
+  // consistent hues used everywhere a severity badge renders, in both
+  // themes, so CRITICAL always reads as the most alarming color present.
+  --color-severity-critical: #b42318;
+  --color-severity-critical-soft: #fef1f0;
+  --color-severity-high: #c4320a;
+  --color-severity-high-soft: #fff2ea;
+  --color-severity-medium: #b54708;
+  --color-severity-medium-soft: #fff6e8;
+  --color-severity-low: #175cd3;
+  --color-severity-low-soft: #eef4ff;
+  --color-severity-informational: #475467;
+  --color-severity-informational-soft: #f2f4f7;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -28,8 +54,42 @@
   --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%);
   --shadow-md: 0 4px 12px rgb(16 24 40 / 8%);
 
-  --font-sans: system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
-  --font-mono: ui-monospace, 'SFMono-Regular', menlo, monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', menlo, monospace;
+
+  // Shiki's own dual-theme output (styles/_markdown.scss resolves these).
+  --shiki-light: initial;
+  --shiki-dark: initial;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --color-bg: #0d0f14;
+    --color-surface: #14171f;
+    --color-surface-raised: #1a1e28;
+    --color-border: #232733;
+    --color-text: #e8eaf0;
+    --color-text-muted: #9aa3b2;
+    --color-accent: #6b93ff;
+    --color-accent-soft: #18203a;
+    --color-on-accent: #0d0f14;
+
+    --color-severity-critical: #f97066;
+    --color-severity-critical-soft: #2d1210;
+    --color-severity-high: #ff9c66;
+    --color-severity-high-soft: #2c1a0d;
+    --color-severity-medium: #fdb022;
+    --color-severity-medium-soft: #2b2008;
+    --color-severity-low: #84adff;
+    --color-severity-low-soft: #101d33;
+    --color-severity-informational: #98a2b3;
+    --color-severity-informational-soft: #1d2129;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
+  }
 }
 
 [data-theme='dark'] {
@@ -37,11 +97,24 @@
 
   --color-bg: #0d0f14;
   --color-surface: #14171f;
+  --color-surface-raised: #1a1e28;
   --color-border: #232733;
   --color-text: #e8eaf0;
   --color-text-muted: #9aa3b2;
   --color-accent: #6b93ff;
   --color-accent-soft: #18203a;
+  --color-on-accent: #0d0f14;
+
+  --color-severity-critical: #f97066;
+  --color-severity-critical-soft: #2d1210;
+  --color-severity-high: #ff9c66;
+  --color-severity-high-soft: #2c1a0d;
+  --color-severity-medium: #fdb022;
+  --color-severity-medium-soft: #2b2008;
+  --color-severity-low: #84adff;
+  --color-severity-low-soft: #101d33;
+  --color-severity-informational: #98a2b3;
+  --color-severity-informational-soft: #1d2129;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);

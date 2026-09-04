@@ -1,0 +1,76 @@
+/**
+ * Bootstrap variable overrides (docs/architecture/06 §5, decision noted in
+ * docs/architecture/00 C2: this must not end up looking like a default
+ * Bootstrap template).
+ *
+ * Every value here is a genuine, fixed Sass color/number — NOT a CSS custom
+ * property reference. That was the first approach tried (`$body-bg:
+ * var(--color-bg)` etc.) and it does not compile: Bootstrap's own
+ * `_root.scss` runs real color math on several of these at build time
+ * (`to-rgb($body-bg)` for the `--bs-body-bg-rgb` companion variable,
+ * `color-contrast()` for computed text colors, and more), which requires
+ * an actual Sass color, not a runtime `var()` reference — verified
+ * empirically against a real build failure, not assumed.
+ *
+ * The values below match `_tokens.scss`'s LIGHT palette exactly, so
+ * Bootstrap's own compiled CSS is already correct for light mode with no
+ * further help. Dark mode is handled the way `_root.scss` itself proves
+ * IS reactive: Bootstrap publishes every one of these as a `--bs-*` CSS
+ * custom property at `:root`, and `_theme-vars.scss` REDEFINES those
+ * specific custom properties (not the Sass variables — Bootstrap has
+ * already finished compiling by then) under `[data-theme='dark']`. That is
+ * plain CSS cascade, not Sass, so it has no color-math restriction at all.
+ */
+
+@forward 'bootstrap/scss/bootstrap' with (
+  $enable-shadows: false,
+  $enable-gradients: false,
+  $enable-negative-margins: true,
+
+  $font-family-sans-serif: (
+    'Inter',
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    roboto,
+    sans-serif,
+  ),
+  $font-family-monospace: (
+    'JetBrains Mono',
+    ui-monospace,
+    'SFMono-Regular',
+    menlo,
+    monospace,
+  ),
+
+  // #2760e8, not the design doc's original #2f6bff — that measured 4.49:1
+  // against white, just under WCAG AA's 4.5:1 for normal text (caught by a
+  // real Lighthouse accessibility audit flagging `.link-primary`). Must
+  // stay in sync with `_tokens.scss`'s `--color-accent` (light value).
+  $primary: #2760e8,
+
+  $body-bg: #ffffff,
+  $body-color: #16181d,
+  $border-color: #e6e8ec,
+  $link-color: #2760e8,
+  $link-hover-color: #2760e8,
+
+  $card-bg: #f7f8fa,
+  $card-border-color: #e6e8ec,
+
+  $border-radius: 10px,
+  $border-radius-sm: 6px,
+  $border-radius-lg: 16px,
+
+  $input-bg: #f7f8fa,
+  $input-border-color: #e6e8ec,
+  $input-color: #16181d,
+
+  $code-color: #2760e8 // Bootstrap ships a `[data-bs-theme="dark"]`-keyed dark-mode system of
+  // its own. This project never sets that attribute — only `[data-theme]`
+  // — so the handful of Bootstrap component rules built on it compile into
+  // the CSS but never match anything at runtime; dark mode is driven
+  // entirely by `_theme-vars.scss` instead, and running two independent
+  // theming systems in parallel is exactly the kind of thing that drifts
+   // out of sync.
+);

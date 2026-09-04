@@ -1,0 +1,113 @@
+/**
+ * Rendered markdown content (docs/architecture/06 §5, lib/markdown/render.ts).
+ * Scoped under `.markdown-body` — applied only where admin-authored content
+ * is actually rendered (case-study sections, article/research bodies),
+ * never globally.
+ */
+
+.markdown-body {
+  color: var(--color-text);
+  line-height: 1.7;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    margin-top: 2em;
+    margin-bottom: 0.6em;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  p,
+  ul,
+  ol,
+  blockquote,
+  table {
+    margin-bottom: 1.1em;
+  }
+
+  a {
+    color: var(--color-accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  blockquote {
+    margin-left: 0;
+    padding-left: 1em;
+    border-left: 3px solid var(--color-border);
+    color: var(--color-text-muted);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+  }
+
+  :not(pre) > code {
+    padding: 0.15em 0.4em;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface);
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+  }
+
+  pre {
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-surface);
+    overflow-x: auto;
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.875em;
+      background: none;
+    }
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 0.5em 0.75em;
+      border: 1px solid var(--color-border);
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--color-surface);
+    }
+  }
+}
+
+/**
+ * Shiki's dual-theme output (docs/architecture/06 §9: highlighting happens
+ * server-side, zero KB shipped to the browser — this is purely CSS for
+ * output shiki already produced). `defaultColor: false` (the automatic
+ * result of passing `theme: {light, dark}` to rehype-pretty-code) means
+ * every token carries BOTH colors as custom properties and nothing resolves
+ * them into a real `color` on its own — this is that resolution, following
+ * the exact same "`[data-theme]` explicit, else `prefers-color-scheme`"
+ * precedence `_tokens.scss` uses for everything else.
+ */
+.markdown-body pre code span {
+  color: var(--shiki-light);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) .markdown-body pre code span {
+    color: var(--shiki-dark);
+  }
+}
+
+html[data-theme='dark'] .markdown-body pre code span {
+  color: var(--shiki-dark);
+}

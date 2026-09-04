@@ -1,0 +1,100 @@
+/**
+ * Dark-mode override of Bootstrap's OWN compiled `--bs-*` custom
+ * properties — plain CSS cascade, applied after Bootstrap's `:root` block
+ * in source order, so no `!important` is needed. See
+ * `_bootstrap-overrides.scss`'s header for why this exists as a separate,
+ * CSS-only file rather than more Sass variable overrides.
+ *
+ * RGB companions (`--bs-*-rgb`, used internally by Bootstrap for
+ * `rgba(var(--bs-x-rgb), alpha)` translucency effects) are hand-converted
+ * from `_tokens.scss`'s dark hex values — kept in sync manually since
+ * CSS has no built-in hex-to-rgb function; if a dark token color changes,
+ * these must change with it.
+ */
+
+@mixin dark-bootstrap-vars {
+  --bs-body-bg: var(--color-bg);
+  --bs-body-bg-rgb: 13, 15, 20;
+  --bs-body-color: var(--color-text);
+  --bs-body-color-rgb: 232, 234, 240;
+
+  --bs-emphasis-color: var(--color-text);
+  --bs-secondary-color: var(--color-text-muted);
+  --bs-secondary-color-rgb: 154, 163, 178;
+  --bs-tertiary-color: var(--color-text-muted);
+  --bs-tertiary-bg: var(--color-surface);
+
+  --bs-border-color: var(--color-border);
+  --bs-border-color-translucent: var(--color-border);
+
+  --bs-link-color: var(--color-accent);
+  --bs-link-color-rgb: 107, 147, 255;
+  --bs-link-hover-color: var(--color-accent);
+
+  --bs-code-color: var(--color-accent);
+
+  // `.card` and `.table` each locally redeclare their own `--bs-*-bg`
+  // custom properties INSIDE their own ruleset (verified via
+  // node_modules/bootstrap/scss/_card.scss:23 and _tables.scss:13 —
+  // `.card { --bs-card-bg: #{$card-bg}; ... }`), rather than only
+  // inheriting from `:root`/`<html>`. CSS gives an element's own matching
+  // declaration priority over an inherited value regardless of the
+  // inherited rule's specificity, so the `--bs-card-bg`/`--bs-table-bg`
+  // set above on `html`/`html:not(...)` never reaches an actual `.card`
+  // or `.table` element — it's shadowed by the component's own rule.
+  // These must be re-declared with a selector that reaches the component
+  // itself; nesting them here means they inherit this mixin's own
+  // ancestor selector (`html:not([data-theme='light'])` or
+  // `html[data-theme='dark']`), giving them enough specificity to win.
+  .card {
+    --bs-card-bg: var(--color-surface);
+    --bs-card-border-color: var(--color-border);
+  }
+
+  .table {
+    --bs-table-bg: var(--color-surface);
+    --bs-table-color: var(--color-text);
+    --bs-table-border-color: var(--color-border);
+    --bs-table-striped-bg: var(--color-bg);
+    --bs-table-hover-bg: var(--color-bg);
+  }
+
+  // `.navbar` locally sets `--bs-navbar-color`/`--bs-navbar-brand-color`
+  // etc. to Bootstrap's `$navbar-light-*` defaults — near-black text
+  // (node_modules/bootstrap/scss/_navbar.scss:10-18) — regardless of
+  // theme, since this app never sets `data-bs-theme` (see
+  // `_bootstrap-overrides.scss`'s header). A real Lighthouse/axe run
+  // caught this: near-black nav text on the near-black dark body reads as
+  // a 1.06:1 contrast ratio, i.e. functionally invisible.
+  .navbar {
+    --bs-navbar-color: var(--color-text-muted);
+    --bs-navbar-hover-color: var(--color-text);
+    --bs-navbar-active-color: var(--color-accent);
+    --bs-navbar-disabled-color: var(--color-text-muted);
+    --bs-navbar-brand-color: var(--color-text);
+    --bs-navbar-brand-hover-color: var(--color-text);
+  }
+
+  // Same shadowing pattern as `.card`/`.table`/`.navbar` above:
+  // `.btn-outline-secondary` locally sets `--bs-btn-color` to Bootstrap's
+  // fixed `$secondary` (`#6c757d`), which only manages 4.08:1 against the
+  // dark background — also caught via a real axe run, on the header's
+  // "Contact" button.
+  .btn-outline-secondary {
+    --bs-btn-color: var(--color-text-muted);
+    --bs-btn-border-color: var(--color-border);
+    --bs-btn-hover-color: var(--color-on-accent);
+    --bs-btn-hover-bg: var(--color-text-muted);
+    --bs-btn-hover-border-color: var(--color-text-muted);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) {
+    @include dark-bootstrap-vars;
+  }
+}
+
+html[data-theme='dark'] {
+  @include dark-bootstrap-vars;
+}

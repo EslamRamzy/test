@@ -1,0 +1,86 @@
+/**
+ * The handful of Bootstrap components whose accent color `_bootstrap-
+ * overrides.scss` could NOT make runtime-reactive (see that file's header:
+ * `$primary` is a real Sass color, baked into compiled hex at build time,
+ * because Bootstrap runs color math — `shade-color`, `tint-color` — on it).
+ *
+ * Bootstrap 5.3's own components already expose their per-instance colors
+ * as CSS custom properties (`--bs-btn-bg` etc.), so overriding just those
+ * — rather than the class's full ruleset — is enough to make them follow
+ * `--color-accent` between themes without fighting Bootstrap's generated
+ * hover/active shades.
+ */
+
+@mixin accent-overrides {
+  // `.link-primary` (Bootstrap's colored-links helper) reads
+  // `--bs-primary-rgb` directly — `RGBA(var(--bs-primary-rgb), ...)` in
+  // node_modules/bootstrap/scss/helpers/_colored-links.scss — rather than
+  // `--bs-primary`/`--bs-link-color` like everything else here, so it's
+  // the one Bootstrap utility this file's other overrides don't reach.
+  // Caught by a real axe run: it kept rendering the LIGHT theme's accent
+  // (#2760e8, only 3.3-3.6:1 against dark backgrounds) even with
+  // `data-theme="dark"` set, because nothing overrode this specific
+  // variable. Must be kept in sync with `--color-accent`'s dark value.
+  --bs-primary-rgb: 107, 147, 255;
+
+  .btn-primary {
+    --bs-btn-bg: var(--color-accent);
+    --bs-btn-border-color: var(--color-accent);
+    --bs-btn-hover-bg: var(--color-accent);
+    --bs-btn-hover-border-color: var(--color-accent);
+    --bs-btn-active-bg: var(--color-accent);
+    --bs-btn-active-border-color: var(--color-accent);
+    --bs-btn-disabled-bg: var(--color-accent);
+    --bs-btn-disabled-border-color: var(--color-accent);
+    --bs-btn-color: var(--color-on-accent);
+    --bs-btn-hover-color: var(--color-on-accent);
+    --bs-btn-active-color: var(--color-on-accent);
+  }
+
+  .btn-outline-primary {
+    --bs-btn-color: var(--color-accent);
+    --bs-btn-border-color: var(--color-accent);
+    --bs-btn-hover-bg: var(--color-accent);
+    --bs-btn-hover-border-color: var(--color-accent);
+    --bs-btn-hover-color: var(--color-on-accent);
+    --bs-btn-active-bg: var(--color-accent);
+    --bs-btn-active-border-color: var(--color-accent);
+  }
+
+  .text-primary {
+    color: var(--color-accent) !important;
+  }
+
+  .bg-primary {
+    background-color: var(--color-accent) !important;
+  }
+
+  .border-primary {
+    border-color: var(--color-accent) !important;
+  }
+
+  // NOT `var(--color-accent)`, deliberately: `.text-bg-primary` pairs a
+  // solid fill with Bootstrap's own precomputed white text
+  // (`color: color-contrast($primary) !important`, fixed at build time —
+  // see node_modules/bootstrap/scss/helpers/_color-bg.scss). The dark
+  // theme's `--color-accent` (#6b93ff) is deliberately a BRIGHT blue,
+  // chosen for blue-text-on-dark-background legibility, not for holding
+  // white text on top of it — white-on-#6b93ff only reaches 2.89:1 (a
+  // real axe run caught this on the `/projects` technology-filter
+  // badges). The fixed light-mode blue (#2760e8) passes as a fill in
+  // either theme, so this pins the background there regardless of
+  // `--bs-primary-rgb`'s theme-reactive value above.
+  .text-bg-primary {
+    background-color: #2760e8 !important;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme='light']) {
+    @include accent-overrides;
+  }
+}
+
+html[data-theme='dark'] {
+  @include accent-overrides;
+}
