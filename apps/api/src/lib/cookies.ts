@@ -1,5 +1,5 @@
 import type { CookieOptions, Request, Response } from 'express';
-import { env, isProduction } from '../config/env.js';
+import { env } from '../config/env.js';
 
 /**
  * The three auth cookies and their exact attributes (docs/architecture/04
@@ -12,10 +12,24 @@ import { env, isProduction } from '../config/env.js';
  * forbids a `Domain` attribute entirely. See docs/architecture/01 §3 and
  * docs/architecture/04 §1 for the full trade and its mitigations.
  *
- * `secure: isProduction` rather than always `true`: local development over
- * plain HTTP (per the README's `local.eslamramzy.dev` setup note) would
- * otherwise never receive the cookie at all. Production always runs behind
- * TLS (Caddy, decision D3), so this is not a downgrade there.
+ * `secure: true`, unconditionally — NOT `secure: isProduction`, which this
+ * file used to read. That looked like the right dev accommodation (avoid
+ * ever requiring TLS locally) but is actually a bug: the `__Secure-` NAME
+ * PREFIX imposes its own hard requirement, independent of whether the
+ * connection is HTTPS — a real browser rejects any `__Secure-`-prefixed
+ * cookie whose `Set-Cookie` header lacks the literal `Secure` attribute,
+ * full stop (confirmed against a real Chromium instance: with `secure:
+ * isProduction` false in dev, `context.cookies()` came back empty after a
+ * real `GET /auth/csrf`; identical request with `secure: true` set the
+ * cookie). Both supported local topologies still work with `secure: true`:
+ * the README's `local.eslamramzy.dev`/`api.local.eslamramzy.dev` setup runs
+ * behind a local Caddy actually terminating TLS, and a bare
+ * `http://localhost` dev server is covered by Chrome's (and Firefox's)
+ * separate "localhost is a potentially trustworthy origin" carve-out, which
+ * allows a `Secure` cookie to be set over plain HTTP specifically for
+ * `localhost`/`127.0.0.1`. Production is always behind TLS regardless
+ * (decision D3). There is no real topology this project supports where
+ * `secure: true` is the wrong choice.
  */
 
 export const ACCESS_TOKEN_COOKIE = '__Secure-at';
@@ -25,7 +39,7 @@ export const CSRF_TOKEN_COOKIE = '__Secure-csrf';
 const REFRESH_COOKIE_PATH = '/api/v1/auth';
 
 const BASE_COOKIE_OPTIONS: CookieOptions = {
-  secure: isProduction,
+  secure: true,
   sameSite: 'strict',
   domain: env.COOKIE_DOMAIN,
 };
