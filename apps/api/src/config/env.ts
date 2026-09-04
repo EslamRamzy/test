@@ -32,6 +32,15 @@ const envSchema = z.object({
         .filter((origin) => origin.length > 0),
     )
     .pipe(z.array(z.string()).min(1, 'At least one allowed origin is required')),
+
+  /**
+   * SQLite file path, as a Prisma-style `file:` URL. Consumed directly by
+   * @prisma/adapter-better-sqlite3 in config/prisma.ts — see that file for
+   * why a driver adapter is required at all in Prisma 7, and why the WAL/
+   * foreign_keys/busy_timeout/synchronous PRAGMAs live there rather than here
+   * (docs/architecture/02 §1).
+   */
+  DATABASE_URL: z.string().min(1).default('file:./prisma/portfolio.db'),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -39,6 +48,14 @@ export type Env = z.infer<typeof envSchema>;
 /**
  * Load `.env` outside production. In production the environment comes from the
  * container, and a stray `.env` file on the server should not silently win.
+ *
+ * `process.loadEnvFile()` with no argument reads `.env` from `process.cwd()`
+ * — which is `apps/api/`, not the repo root, whenever this runs through an
+ * npm workspace script (`npm run dev -w @portfolio/api`, verified: npm sets
+ * the workspace's own directory as CWD). The file to fill in for local
+ * development is therefore `apps/api/.env.example` → `apps/api/.env`, not a
+ * `.env` at the repo root — see that file's own header for the full
+ * explanation and how this differs from the Docker Compose path.
  */
 function loadDotEnv(): void {
   if (process.env['NODE_ENV'] === 'production') return;

@@ -4,9 +4,18 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "types": ["node"],
-    "rootDir": "./src",
-    "outDir": "./dist"
+    // Widened to the workspace root (not "./src") because src/config/prisma.ts
+    // imports Prisma's generated client from ../../generated/prisma, which is
+    // a SIBLING of src/, not a descendant of it. TS requires every file that
+    // ends up in the compiled program — including one pulled in transitively
+    // through an import, not just files matched by `include` — to live under
+    // `rootDir`, or emission fails with TS6059. `declaration: false` below
+    // matters here too: nothing imports @portfolio/api as a library, so there
+    // is no reason to emit .d.ts files, only .js.
+    "rootDir": ".",
+    "outDir": "./dist",
+    "declaration": false
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "generated/**/*.ts"],
   "exclude": ["src/**/*.test.ts", "dist"]
 }

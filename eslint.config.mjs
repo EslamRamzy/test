@@ -197,6 +197,8 @@ export default tseslint.config(
       '**/vitest.setup.ts',
       // Repository tooling: writing to stdout is these scripts' whole purpose.
       'scripts/**/*.mjs',
+      // Standalone CLI scripts (bootstrap, seed) — same reasoning.
+      'apps/api/prisma/*.ts',
     ],
     rules: {
       'no-console': 'off',

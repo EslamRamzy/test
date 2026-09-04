@@ -1,0 +1,688 @@
+// Eslam Ramzy Portfolio — database schema.
+//
+// See docs/architecture/02-database-architecture.md for the full design
+// rationale, ERDs and conventions. Summary of what is NOT expressed here and
+// why, because Prisma's schema DSL cannot model it on SQLite:
+//
+//   - CHECK constraints (status/role/category/severity enums, the profiles
+//     singleton) are hand-inlined into the CREATE TABLE statements in the
+//     migration SQL, appended after `prisma migrate dev --create-only`.
+//   - Partial indexes (`WHERE status = 'PUBLISHED'`) are hand-written SQL.
+//   - The `search_index` FTS5 virtual table and its maintenance triggers are
+//     hand-written SQL — there is no Prisma model for it at all.
+//
+// Everything else (tables, columns, relations, ordinary indexes including
+// every foreign key's index) is expressed here and Prisma-generated.
+//
+// Prisma 7 requires a driver adapter at runtime (no more bundled query
+// engine) — see apps/api/src/config/prisma.ts for how the app constructs
+// PrismaClient with @prisma/adapter-better-sqlite3, and how it applies the
+// PRAGMAs from docs/architecture/02 §1 once at boot.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// =============================================================================
+// Identity, media, audit — docs/architecture/02 §2
+// =============================================================================
+
+model User {
+  id                 Int       @id @default(autoincrement())
+  email              String    @unique
+  passwordHash       String    @map("password_hash")
+  name               String
+  /// CHECK (role IN ('ADMIN','SUPER_ADMIN','EDITOR')) — hand-added in the migration.
+  role               String    @default("ADMIN")
+  isActive           Boolean   @default(true) @map("is_active")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  /// Bumped on password change; an outstanding access token's claim must match
+  /// this value or the request is rejected (docs/architecture/04 §4).
+  tokenVersion       Int       @default(0) @map("token_version")
+  failedLoginCount   Int       @default(0) @map("failed_login_count")
+  lockedUntil        DateTime? @map("locked_until")
+  lastLoginAt        DateTime? @map("last_login_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  uploadedMedia Media[]
+  articles      Article[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @map("user_id")
+  /// SHA-256 hash of the opaque token — the plaintext is never stored
+  /// (docs/architecture/04 §3).
+  tokenHash      String    @unique @map("token_hash")
+  /// All tokens descended from one login share a family id, so reuse of a
+  /// rotated token revokes the whole family.
+  familyId       String    @map("family_id")
+  expiresAt      DateTime  @map("expires_at")
+  revokedAt      DateTime? @map("revoked_at")
+  replacedByHash String?   @map("replaced_by_hash")
+  userAgent      String?   @map("user_agent")
+  ipHash         String?   @map("ip_hash")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt])
+  @@index([familyId])
+  @@map("refresh_tokens")
+}
+
+model Media {
+  id             Int      @id @default(autoincrement())
+  /// Server-generated, content-hashed filename — never derived from the
+  /// client-supplied name (docs/architecture/09 §7).
+  filename       String   @unique
+  originalName   String   @map("original_name")
+  mimeType       String   @map("mime_type")
+  sizeBytes      Int      @map("size_bytes")
+  width          Int?
+  height         Int?
+  checksumSha256 String   @map("checksum_sha256")
+  storagePath    String   @map("storage_path")
+  altText        String?  @map("alt_text")
+  /// CHECK (kind IN (...)) — hand-added in the migration.
+  kind           String
+  uploadedBy     Int?     @map("uploaded_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Only one relation exists between User and Media, so it needs no explicit
+  // @relation name — Prisma pairs it with User.uploadedMedia automatically.
+  uploader User? @relation(fields: [uploadedBy], references: [id], onDelete: SetNull)
+
+  // Reverse relations for every place a media row can be referenced. Named
+  // relations are only required where two models have more than one relation
+  // between them (Profile has both an avatar and a resume pointing at Media).
+  profileAvatarOf Profile[]          @relation("ProfileAvatar")
+  profileResumeOf Profile[]          @relation("ProfileResume")
+  projectCoverOf  Project[]          @relation("ProjectCover")
+  projectImages   ProjectImage[]
+  certificateOf   Certification[]
+  articleCoverOf  Article[]          @relation("ArticleCover")
+  researchCoverOf SecurityResearch[] @relation("ResearchCover")
+
+  @@index([uploadedBy])
+  @@index([kind])
+  @@map("media")
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  /// Nullable: some actions (e.g. a scheduled job) have no acting user.
+  userId       Int?     @map("user_id")
+  /// e.g. PROJECT_PUBLISH, LOGIN_SUCCESS — free text, not a CHECK-constrained
+  /// enum, because the action vocabulary grows with every feature and an
+  /// audit trail must never reject a write for an unrecognised action name.
+  action       String
+  entityType   String?  @map("entity_type")
+  entityId     Int?     @map("entity_id")
+  /// Redacted JSON — never a secret, a token, or a password (docs/architecture/09 §9).
+  metadataJson String?  @map("metadata_json")
+  ipHash       String?  @map("ip_hash")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// =============================================================================
+// Projects & security assessments — docs/architecture/02 §3
+// =============================================================================
+
+model Project {
+  id               Int     @id @default(autoincrement())
+  title            String
+  slug             String  @unique
+  shortDescription String  @map("short_description")
+  fullDescription  String? @map("full_description")
+  /// CHECK (category IN (...)) — hand-added in the migration.
+  category         String
+  /// CHECK (status IN ('DRAFT','PUBLISHED','ARCHIVED')) — hand-added in the migration.
+  status           String  @default("DRAFT")
+  featured         Boolean @default(false)
+  coverMediaId     Int?    @map("cover_media_id")
+
+  // --- D5 hybrid case-study body: named columns for the fields §7 lists explicitly.
+  problem         String?
+  solution        String?
+  architecture    String?
+  challenges      String?
+  solutionsDetail String? @map("solutions_detail")
+  lessonsLearned  String? @map("lessons_learned")
+  deploymentNotes String? @map("deployment_notes")
+
+  githubUrl       String? @map("github_url")
+  liveUrl         String? @map("live_url")
+  securityTested  Boolean @default(false) @map("security_tested")
+  securitySummary String? @map("security_summary")
+  testingSummary  String? @map("testing_summary")
+
+  /// D5: ordered JSON array of section keys — the single source of truth for
+  /// what renders and in what order (docs/architecture/02, "Case-study body"
+  /// note). A key naming a built-in column reads that column; any other key
+  /// reads its `ProjectSection` row.
+  visibleSectionsJson String @default("[]") @map("visible_sections_json")
+
+  displayOrder Int       @default(0) @map("display_order")
+  viewCount    Int       @default(0) @map("view_count")
+  publishedAt  DateTime? @map("published_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  coverMedia   Media?               @relation("ProjectCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  images       ProjectImage[]
+  features     ProjectFeature[]
+  sections     ProjectSection[]
+  technologies ProjectTechnology[]
+  assessments  SecurityAssessment[]
+
+  @@index([coverMediaId])
+  @@index([status, publishedAt])
+  // NOTE: the featured-listing index is a PARTIAL index (`WHERE status =
+  // 'PUBLISHED'`, docs/architecture/02 §8) — Prisma's schema DSL cannot
+  // express a partial index on SQLite, so it is hand-written directly in the
+  // migration SQL instead of declared here. Do not add
+  // `@@index([featured, displayOrder])` — a future `migrate dev` would then
+  // fight the hand-written version.
+  @@map("projects")
+}
+
+model ProjectSection {
+  id           Int     @id @default(autoincrement())
+  projectId    Int     @map("project_id")
+  /// A built-in key (matches a Project column) or a custom key with no column.
+  sectionKey   String  @map("section_key")
+  title        String
+  /// Null for built-ins, whose content lives in the matching Project column.
+  body         String?
+  displayOrder Int     @default(0) @map("display_order")
+  visible      Boolean @default(true)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, sectionKey])
+  @@index([projectId])
+  @@map("project_sections")
+}
+
+model ProjectImage {
+  id           Int     @id @default(autoincrement())
+  projectId    Int     @map("project_id")
+  mediaId      Int     @map("media_id")
+  caption      String?
+  displayOrder Int     @default(0) @map("display_order")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  media   Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([mediaId])
+  @@map("project_images")
+}
+
+model ProjectFeature {
+  id           Int     @id @default(autoincrement())
+  projectId    Int     @map("project_id")
+  title        String
+  description  String?
+  displayOrder Int     @default(0) @map("display_order")
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@map("project_features")
+}
+
+model Technology {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  slug         String   @unique
+  icon         String?
+  category     String?
+  websiteUrl   String?  @map("website_url")
+  displayOrder Int      @default(0) @map("display_order")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  projects    ProjectTechnology[]
+  experiences ExperienceTechnology[]
+
+  @@map("technologies")
+}
+
+model ProjectTechnology {
+  projectId    Int @map("project_id")
+  technologyId Int @map("technology_id")
+
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technology Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, technologyId])
+  @@index([technologyId])
+  @@map("project_technologies")
+}
+
+model SecurityAssessment {
+  id          Int       @id @default(autoincrement())
+  projectId   Int       @map("project_id")
+  title       String
+  scope       String?
+  methodology String?
+  summary     String?
+  /// CHECK (status IN ('PLANNED','IN_PROGRESS','COMPLETED','RETESTED')) — hand-added.
+  status      String    @default("PLANNED")
+  /// Gates public rendering, together with `Project.status = PUBLISHED` and
+  /// each finding's own `isPublic` (docs/architecture/02 "Public-safety rule").
+  isPublic    Boolean   @default(false) @map("is_public")
+  assessedAt  DateTime? @map("assessed_at")
+  retestedAt  DateTime? @map("retested_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  project  Project                  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tests    SecurityAssessmentTest[]
+  findings SecurityFinding[]
+
+  @@index([projectId])
+  @@map("security_assessments")
+}
+
+model SecurityAssessmentTest {
+  id           Int     @id @default(autoincrement())
+  assessmentId Int     @map("assessment_id")
+  /// CHECK (test_type IN (...15 values from brief §9...)) — hand-added.
+  testType     String  @map("test_type")
+  /// CHECK (result IN ('PASS','ISSUES_FOUND','NOT_APPLICABLE','NOT_TESTED')) — hand-added.
+  result       String  @default("NOT_TESTED")
+  notes        String?
+  displayOrder Int     @default(0) @map("display_order")
+
+  assessment SecurityAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, testType])
+  @@index([assessmentId])
+  @@map("security_assessment_tests")
+}
+
+model SecurityFinding {
+  id                Int       @id @default(autoincrement())
+  assessmentId      Int       @map("assessment_id")
+  title             String
+  /// CHECK (severity IN ('CRITICAL','HIGH','MEDIUM','LOW','INFORMATIONAL')) — hand-added.
+  severity          String
+  description       String?
+  impact            String?
+  affectedComponent String?   @map("affected_component")
+  remediation       String?
+  /// CHECK (status IN ('OPEN','FIXED','ACCEPTED_RISK','FALSE_POSITIVE','RETESTED')) — hand-added.
+  status            String    @default("OPEN")
+  cweId             String?   @map("cwe_id")
+  /// Never overrides the never-public-while-open rule enforced in the service
+  /// layer (docs/architecture/05 §4) — this flag alone does not make a
+  /// CRITICAL/HIGH open finding visible.
+  isPublic          Boolean   @default(false) @map("is_public")
+  discoveredAt      DateTime? @map("discovered_at")
+  resolvedAt        DateTime? @map("resolved_at")
+  displayOrder      Int       @default(0) @map("display_order")
+
+  assessment SecurityAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+
+  @@index([assessmentId])
+  @@map("security_findings")
+}
+
+// =============================================================================
+// Articles & security research — docs/architecture/02 §4
+// =============================================================================
+
+model ArticleCategory {
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  slug         String  @unique
+  description  String?
+  displayOrder Int     @default(0) @map("display_order")
+
+  articles Article[]
+
+  @@map("article_categories")
+}
+
+model Article {
+  id                 Int       @id @default(autoincrement())
+  title              String
+  slug               String    @unique
+  excerpt            String?
+  content            String
+  coverMediaId       Int?      @map("cover_media_id")
+  authorId           Int       @map("author_id")
+  categoryId         Int?      @map("category_id")
+  /// CHECK (status IN ('DRAFT','PUBLISHED','ARCHIVED')) — hand-added.
+  status             String    @default("DRAFT")
+  readingTimeMinutes Int       @default(1) @map("reading_time_minutes")
+  viewCount          Int       @default(0) @map("view_count")
+  publishedAt        DateTime? @map("published_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  coverMedia Media?           @relation("ArticleCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  author     User             @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  category   ArticleCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags       ArticleTag[]
+
+  @@index([coverMediaId])
+  @@index([authorId])
+  @@index([categoryId, status])
+  @@index([status, publishedAt])
+  @@map("articles")
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  slug String @unique
+
+  articles ArticleTag[]
+  research ResearchTag[]
+
+  @@map("tags")
+}
+
+model ArticleTag {
+  articleId Int @map("article_id")
+  tagId     Int @map("tag_id")
+
+  article Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([articleId, tagId])
+  @@index([tagId])
+  @@map("article_tags")
+}
+
+model SecurityResearch {
+  id           Int       @id @default(autoincrement())
+  title        String
+  slug         String    @unique
+  description  String?
+  content      String
+  /// CHECK (category IN ('RESEARCH','WRITEUP','METHODOLOGY','NOTES','TOOL')) — hand-added.
+  category     String
+  /// CHECK (status IN ('DRAFT','PUBLISHED','ARCHIVED')) — hand-added.
+  status       String    @default("DRAFT")
+  coverMediaId Int?      @map("cover_media_id")
+  viewCount    Int       @default(0) @map("view_count")
+  publishedAt  DateTime? @map("published_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  coverMedia Media?              @relation("ResearchCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  tags       ResearchTag[]
+  references ResearchReference[]
+
+  @@index([coverMediaId])
+  @@index([status, publishedAt])
+  @@map("security_research")
+}
+
+model ResearchTag {
+  researchId Int @map("research_id")
+  tagId      Int @map("tag_id")
+
+  research SecurityResearch @relation(fields: [researchId], references: [id], onDelete: Cascade)
+  tag      Tag              @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([researchId, tagId])
+  @@index([tagId])
+  @@map("research_tags")
+}
+
+model ResearchReference {
+  id           Int    @id @default(autoincrement())
+  researchId   Int    @map("research_id")
+  label        String
+  url          String
+  displayOrder Int    @default(0) @map("display_order")
+
+  research SecurityResearch @relation(fields: [researchId], references: [id], onDelete: Cascade)
+
+  @@index([researchId])
+  @@map("research_references")
+}
+
+// =============================================================================
+// Profile, CV, site — docs/architecture/02 §5
+// =============================================================================
+
+model Profile {
+  /// Singleton: CHECK (id = 1) — hand-added in the migration.
+  id               Int      @id @default(autoincrement())
+  fullName         String   @map("full_name")
+  headline         String?
+  shortBio         String?  @map("short_bio")
+  fullBio          String?  @map("full_bio")
+  location         String?
+  publicEmail      String?  @map("public_email")
+  avatarMediaId    Int?     @map("avatar_media_id")
+  resumeMediaId    Int?     @map("resume_media_id")
+  availableForWork Boolean  @default(false) @map("available_for_work")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  avatarMedia Media? @relation("ProfileAvatar", fields: [avatarMediaId], references: [id], onDelete: SetNull)
+  resumeMedia Media? @relation("ProfileResume", fields: [resumeMediaId], references: [id], onDelete: SetNull)
+
+  @@index([avatarMediaId])
+  @@index([resumeMediaId])
+  @@map("profiles")
+}
+
+model SkillCategory {
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  slug         String  @unique
+  icon         String?
+  displayOrder Int     @default(0) @map("display_order")
+  visible      Boolean @default(true)
+
+  skills Skill[]
+
+  @@map("skill_categories")
+}
+
+model Skill {
+  id           Int     @id @default(autoincrement())
+  categoryId   Int     @map("category_id")
+  name         String
+  icon         String?
+  description  String?
+  /// CHECK (level IN ('BEGINNER','INTERMEDIATE','ADVANCED')) — hand-added.
+  level        String  @default("INTERMEDIATE")
+  displayOrder Int     @default(0) @map("display_order")
+  visible      Boolean @default(true)
+
+  category SkillCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@map("skills")
+}
+
+model Certification {
+  id                 Int       @id @default(autoincrement())
+  name               String
+  issuer             String
+  description        String?
+  certificateMediaId Int?      @map("certificate_media_id")
+  credentialUrl      String?   @map("credential_url")
+  issueDate          DateTime? @map("issue_date")
+  expirationDate     DateTime? @map("expiration_date")
+  displayOrder       Int       @default(0) @map("display_order")
+  visible            Boolean   @default(true)
+
+  certificateMedia Media? @relation(fields: [certificateMediaId], references: [id], onDelete: SetNull)
+
+  @@index([certificateMediaId])
+  @@map("certifications")
+}
+
+model Experience {
+  id           Int       @id @default(autoincrement())
+  position     String
+  organization String
+  location     String?
+  description  String?
+  startDate    DateTime  @map("start_date")
+  endDate      DateTime? @map("end_date")
+  isCurrent    Boolean   @default(false) @map("is_current")
+  displayOrder Int       @default(0) @map("display_order")
+  visible      Boolean   @default(true)
+
+  achievements ExperienceAchievement[]
+  technologies ExperienceTechnology[]
+
+  @@map("experiences")
+}
+
+model ExperienceAchievement {
+  id           Int    @id @default(autoincrement())
+  experienceId Int    @map("experience_id")
+  text         String
+  displayOrder Int    @default(0) @map("display_order")
+
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+
+  @@index([experienceId])
+  @@map("experience_achievements")
+}
+
+model ExperienceTechnology {
+  experienceId Int @map("experience_id")
+  technologyId Int @map("technology_id")
+
+  experience Experience @relation(fields: [experienceId], references: [id], onDelete: Cascade)
+  technology Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@id([experienceId, technologyId])
+  @@index([technologyId])
+  @@map("experience_technologies")
+}
+
+model Education {
+  id           Int       @id @default(autoincrement())
+  institution  String
+  degree       String
+  field        String?
+  description  String?
+  startDate    DateTime  @map("start_date")
+  endDate      DateTime? @map("end_date")
+  displayOrder Int       @default(0) @map("display_order")
+  visible      Boolean   @default(true)
+
+  @@map("education")
+}
+
+model TimelineEntry {
+  id           Int      @id @default(autoincrement())
+  entryDate    DateTime @map("entry_date")
+  yearLabel    String?  @map("year_label")
+  title        String
+  description  String?
+  category     String?
+  displayOrder Int      @default(0) @map("display_order")
+  visible      Boolean  @default(true)
+
+  @@map("timeline_entries")
+}
+
+model SocialLink {
+  id           Int     @id @default(autoincrement())
+  platform     String
+  label        String?
+  url          String
+  icon         String?
+  displayOrder Int     @default(0) @map("display_order")
+  enabled      Boolean @default(true)
+
+  @@map("social_links")
+}
+
+// =============================================================================
+// Operations — docs/architecture/02 §6
+// =============================================================================
+
+model ContactMessage {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  /// CHECK (status IN ('UNREAD','READ','ARCHIVED')) — hand-added.
+  status    String    @default("UNREAD")
+  ipHash    String?   @map("ip_hash")
+  userAgent String?   @map("user_agent")
+  spamScore Int       @default(0) @map("spam_score")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([status, createdAt])
+  @@map("contact_messages")
+}
+
+model SiteSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String?
+  /// CHECK (value_type IN ('STRING','NUMBER','BOOLEAN','JSON')) — hand-added.
+  valueType String   @default("STRING") @map("value_type")
+  groupName String?  @map("group_name")
+  /// Gates exposure via the public API — an admin-only setting must never
+  /// leak through GET /api/v1/profile or /stats.
+  isPublic  Boolean  @default(false) @map("is_public")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
+model PageView {
+  id           Int      @id @default(autoincrement())
+  path         String
+  /// CHECK (entity_type IN ('PROJECT','ARTICLE','RESEARCH','PAGE')) — hand-added.
+  entityType   String?  @map("entity_type")
+  entityId     Int?     @map("entity_id")
+  referrerHost String?  @map("referrer_host")
+  /// sha256(ip + userAgent + dailySalt) — never a raw IP (docs/architecture/09 §10).
+  visitorHash  String   @map("visitor_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@map("page_views")
+}
+
+model AnalyticsDaily {
+  id             Int      @id @default(autoincrement())
+  day            DateTime
+  path           String
+  entityType     String?  @map("entity_type")
+  entityId       Int?     @map("entity_id")
+  views          Int      @default(0)
+  uniqueVisitors Int      @default(0) @map("unique_visitors")
+
+  @@unique([day, path, entityType, entityId])
+  @@map("analytics_daily")
+}

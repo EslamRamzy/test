@@ -135,6 +135,23 @@ Committed with **empty values and comments only** (§42). `.env`, `.env.local`, 
 and `backups/` are gitignored. A `gitleaks` pre-commit hook and a CI secret-scan job back this up —
 the `.gitignore` is not the control, it is the convenience.
 
+> **Correction from Phase 2 (this document originally showed one root-level file — that was
+> wrong):** there are **three** `.env.example` files, not one, because `.env` loading is CWD-based
+> and each process has a different CWD. `npm run <script> -w @portfolio/api` runs with its CWD set
+> to `apps/api/` (verified empirically), and `process.loadEnvFile()` with no argument reads `.env`
+> from `process.cwd()` — a `.env` at the repo root is silently never read, no matter how the process
+> is started locally. Next.js has the identical constraint: it only ever loads `.env` from its own
+> app directory. So:
+>
+> - `apps/api/.env.example` → `apps/api/.env` — read by the Express API locally.
+> - `apps/web/.env.example` → `apps/web/.env` — read by Next.js locally.
+> - `.env.example` at the repo root → `.env` at the repo root — read only by `docker compose`
+>   itself, to fill in the `${VAR}` references in `docker-compose.yml`. The containers then get
+>   real values injected directly via that file's `environment:` blocks; they never read this file.
+>
+> The sample content below is what the **API's** file looks like; the web and root files carry only
+> the subset each process actually needs. See each file's own header comment.
+
 ```bash
 NODE_ENV=development
 # --- API (two origins — decision D1) ---

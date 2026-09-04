@@ -1,7 +1,9 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 1 of 16 complete** — monorepo, tooling and CI are in place.
-> Phase 2 (database and migrations) is blocked on decision **D5**.
+> **Status: Phase 2 of 16 complete** — the full database schema is implemented, migrated, seeded and
+> enforcement-tested against the real SQLite engine. Phase 3 is unblocked. No open decisions remain
+> that block current work — see [12](architecture/12-decisions-pending-approval.md) for the small
+> number still open, none of which gate the next phase.
 
 ## Documents
 
@@ -26,9 +28,11 @@
 | Phase | Report |
 |---|---|
 | 1 | [Project setup](phases/phase-01-report.md) |
+| 2 | [Database + migrations](phases/phase-02-report.md) |
 
 ## How to review
 
 1. Read **00** first — it lists everything I found wrong, missing, or ambiguous in the brief.
-2. Read **12** for the decisions already taken and the ones still open (**D4** is the last blocking one).
-3. Everything between 01 and 11 is the proposed design. Comment on anything you want changed.
+2. Read **12** for the decisions taken and the few still open.
+3. Everything between 01 and 11 is the design, corrected in place as implementation revealed real
+   issues (each correction is marked inline, e.g. doc 02's Prisma 7 driver-adapter note).

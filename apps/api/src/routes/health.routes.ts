@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import type { Request, Response } from 'express';
+import { isDatabaseReady } from '../services/healthService.js';
 
 export const healthRouter: Router = Router();
 
@@ -15,12 +16,28 @@ healthRouter.get('/health', (_req: Request, res: Response) => {
 });
 
 /**
- * Readiness: the process can serve real traffic.
- *
- * Phase 2 extends this to check the database connection and that migrations
- * have been applied, so the container is not put into rotation before the
- * schema is ready.
+ * Readiness: the process can serve real traffic — the database is reachable
+ * and migrations have been applied. A container that fails this should not
+ * be put into rotation behind the reverse proxy (docs/architecture/01 §8).
  */
 healthRouter.get('/health/ready', (_req: Request, res: Response) => {
-  res.json({ success: true, data: { status: 'ready' } });
+  isDatabaseReady()
+    .then((ready) => {
+      if (ready) {
+        res.json({ success: true, data: { status: 'ready' } });
+        return;
+      }
+      // Deliberately generic: a readiness probe is unauthenticated and must
+      // not leak connection strings or driver error detail.
+      res.status(503).json({
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Service is not ready' },
+      });
+    })
+    .catch(() => {
+      res.status(503).json({
+        success: false,
+        error: { code: 'INTERNAL_ERROR', message: 'Service is not ready' },
+      });
+    });
 });

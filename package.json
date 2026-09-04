@@ -12,6 +12,7 @@
     "apps/*"
   ],
   "scripts": {
+    "postinstall": "npm run db:generate -w @portfolio/api",
     "dev": "npm run build -w @portfolio/shared && npm run dev --workspaces --if-present",
     "build": "npm run build -w @portfolio/shared && npm run build -w @portfolio/api && npm run build -w @portfolio/web",
     "typecheck": "npm run build -w @portfolio/shared && npm run typecheck -w @portfolio/api && npm run typecheck -w @portfolio/web",
@@ -33,5 +34,10 @@
     "prettier": "^3.9.0",
     "typescript": "^5.9.0",
     "typescript-eslint": "^8.69.0"
+  },
+  "overrides": {
+    "comment": "prisma@7.10.0's CLI bundles MySQL/multi-provider tooling we never invoke (we are SQLite-only per docs/architecture/02) via outdated transitive deps with known high-severity advisories. Forcing them to their patched minors, which prisma's own semver ranges accept. Revisit when a prisma release updates these itself.",
+    "mysql2": "^3.24.3",
+    "deepmerge-ts": "^8.0.2"
   }
 }
