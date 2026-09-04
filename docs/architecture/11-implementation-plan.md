@@ -13,7 +13,7 @@ Estimates assume focused sessions and are for sequencing, not commitments.
 |---|---|---|---|
 | 0 | Requirements + Architecture | — | **done — approved** |
 | 1 | Project setup | 1 d | **done** — [report](../phases/phase-01-report.md) |
-| 2 | Database + migrations | 2 d | 1 · **blocked on D5** |
+| 2 | Database + migrations | 2 d | 1 · **in progress** |
 | 3 | Backend foundation | 2 d | 2 |
 | 4 | Authentication + Authorization | 2 d | 3 |
 | 5 | Public API | 3 d | 4 |

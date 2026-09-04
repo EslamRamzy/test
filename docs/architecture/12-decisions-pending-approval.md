@@ -9,7 +9,9 @@
 | **D3** | Deployment | **Linux VPS + Docker Compose + Caddy** |
 | **D4** | Meaning of `/security` | **Security Research only.** Project assessments render inside the case study at `/projects/[slug]#security` |
 | **D8** | Authoring format | **Markdown** (GFM) with a split-pane editor, HTML stripped by the sanitiser |
+| **D5** | Case-study body | **Hybrid** — §7 fields as columns + `visible_sections` order/visibility + `project_sections` for custom sections |
 | **D10** | Language | **English only.** No i18n framework, no translation tables, no RTL layer |
+| **D11** | `Program.cs` | **Deleted** in Phase 2 |
 
 ### What D1 changed in the design
 
@@ -43,8 +45,7 @@ Documents updated for these decisions: 00, 01, 03, 04, 06, 08, 09, 11.
 ## Still open
 
 Each has my recommendation. **Answering "all defaults" accepts every remaining recommendation.**
-**D5 blocks Phase 2** because it decides the projects schema. The rest can be settled during their
-own phase.
+Nothing here blocks Phase 2; each is settled inside the phase that needs it.
 
 ### ~~D1 — API topology~~ · DECIDED: two origins
 See "Decisions taken" above.
@@ -61,14 +62,22 @@ See above. **Still needed from you:** the domain name (`eslamramzy.dev` is curre
 assessment renders inside its case study at `/projects/[slug]#security`, with a "Security tested"
 filter on the projects list. Two separate admin modules, no slug collisions.
 
-### D5 — Project case-study body: fixed columns or flexible sections?
-§7 lists Architecture/Challenges/Solutions as project fields; §8 wants admin-controlled sections.
+### ~~D5 — Project case-study body~~ · DECIDED: hybrid
 
-- **★ Recommended: hybrid.** Keep the §7 fields as real columns (queryable, matches the brief
-  literally), plus a `visible_sections` order/visibility list **and** a `project_sections` table for
-  custom sections you invent later. Slightly redundant, maximally flexible.
-- Alternative A: columns only — simplest, but adding a new section type later needs a migration.
-- Alternative B: sections only — cleanest model, but deviates from §7's explicit field list.
+Three mechanisms, with a clear division of responsibility so the redundancy stays harmless:
+
+1. **Columns** for the fields the brief names explicitly in §7 — `problem`, `solution`,
+   `architecture`, `challenges`, `solutions_detail`, `lessons_learned`, `deployment_notes`,
+   plus `security_summary` and `testing_summary`. These are queryable and match the brief literally.
+2. **`visible_sections`** (a JSON array of ordered section keys on `projects`) controls **which**
+   built-in sections render and **in what order**, per project (§8).
+3. **`project_sections`** holds sections you invent later that have no column — a custom key, a
+   title and a markdown body. Adding one never needs a migration.
+
+Rendering rule, so the two never conflict: the case-study renderer walks `visible_sections` in
+order. A key that names a built-in reads its column; any other key reads its `project_sections` row.
+A built-in whose column is empty is skipped even if listed, so a half-filled project never renders
+an empty heading.
 
 ### D6 — Draft preview
 Do you want to view unpublished content on the real public layout before publishing?
@@ -100,10 +109,10 @@ No i18n framework, no per-locale columns or translation tables, no `/[locale]/�
 layer. Recorded as a deliberate choice rather than an omission: adding a second language later is a
 schema change plus a rewrite of every admin editor, not a configuration flag.
 
-### D11 — The existing `Program.cs`
-The repository currently contains an unrelated C# hello-world. I have not touched it.
-- **★ Recommended:** delete it in Phase 1 (it will confuse language detection and tooling).
-- Alternatives: keep it, or move it to an `archive/` folder.
+### ~~D11 — `Program.cs`~~ · DECIDED: deleted
+
+Removed at the start of Phase 2. It was an unrelated C# hello-world that would have skewed GitHub's
+language detection and confused tooling.
 
 ### D12 — Two-factor authentication for the admin
 Not in the brief. On a security-focused portfolio, a TOTP second factor on the single admin account
@@ -131,8 +140,8 @@ them properly; otherwise they are noise and I will not mention them again.
 
 ## What I need from you to start
 
-1. **An answer to D5** before Phase 2 writes the schema — it decides whether a project's case-study
-   body is fixed columns, flexible sections, or the hybrid I recommend. Nothing else blocks Phase 2.
+1. Nothing blocks the current phase. **D6, D7, D9 and D12** are settled inside the phases that need
+   them (Draft preview and account recovery in Phase 4, contact email in Phase 10, TOTP in Phase 4).
 2. **The profile photo** — I will wire it as a `media` row referenced by `profiles.avatar_media_id`,
    replaceable from Admin → Settings. It will never be hardcoded in a component.
 3. **Domain name**, plus confirmation you control DNS for the `api.` subdomain (required by D1).
@@ -140,4 +149,4 @@ them properly; otherwise they are noise and I will not mention them again.
    from the admin later.
 5. **Your real social links** (GitHub, LinkedIn, email) for the seeded `social_links` rows.
 
-Phase 1 is complete. **D5 is the only item that blocks Phase 2.**
+Phase 1 is complete and Phase 2 is unblocked.

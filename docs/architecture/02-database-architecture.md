@@ -217,6 +217,14 @@ erDiagram
     }
 ```
 
+> **Case-study body — the D5 hybrid contract.** Three mechanisms with one rendering rule:
+> `projects.visible_sections_json` is an ordered array of section keys and is the single source of
+> truth for what renders and in what order. A key naming a built-in (`problem`, `solution`,
+> `architecture`, `challenges`, `solutions_detail`, `lessons_learned`, `deployment_notes`,
+> `security`, `testing`) reads the matching column; any other key reads its `project_sections` row.
+> A built-in with an empty column is skipped even when listed, so a partly filled project never
+> renders an empty heading. Custom sections need no migration.
+
 > **Public-safety rule:** a finding is rendered publicly only when
 > `assessment.is_public AND finding.is_public AND project.status = 'PUBLISHED'`.
 > Enforced in `securityRepository`, not in the view. Findings with `status='OPEN'` and
