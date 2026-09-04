@@ -1,0 +1,1223 @@
+/**
+ * Bespoke component treatments that don't fit Bootstrap's own variable
+ * system (unlike `_theme-vars.scss`/`_themes.scss`, which only ever
+ * override a `--bs-*` custom property) — one file per concern below,
+ * kept together rather than one file per component, matching the small
+ * number of existing partials (`_tokens`, `_bootstrap-overrides`,
+ * `_theme-vars`, `_themes`, `_markdown`) this project already settled on.
+ */
+
+// ---------------------------------------------------------------------------
+// Navbar — floating/transparent, blurred + bordered once scrolled
+// (design concept §09). `Header.tsx` only ever toggles one class; every
+// visual consequence lives here.
+// ---------------------------------------------------------------------------
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 1030;
+  padding: var(--space-4) 0;
+  background: transparent;
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    padding var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+
+.site-header--scrolled {
+  padding: calc(var(--space-3)) 0;
+  background: color-mix(in srgb, var(--color-bg) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom-color: var(--color-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.site-header__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--color-text) !important;
+}
+
+.site-header__brand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+
+.site-header__links .nav-link {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  padding: var(--space-2) var(--space-3);
+  position: relative;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.site-header__links .nav-link:hover,
+.site-header__links .nav-link.active {
+  color: var(--color-text);
+}
+
+// Underline-on-hover micro-interaction (design concept §Micro Interactions).
+.site-header__links .nav-link::after {
+  content: '';
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: 2px;
+  height: 1px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.site-header__links .nav-link:hover::after {
+  transform: scaleX(1);
+}
+
+.site-header__cta {
+  border-radius: var(--radius-pill);
+  padding: 0.5rem 1.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+// Three `currentColor` bars — see Header.tsx's comment for why this
+// replaces react-bootstrap's default `Navbar.Toggle`.
+.site-header__toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  z-index: 1031;
+
+  span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    margin: 0 auto;
+    background: var(--color-text);
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      opacity var(--dur-fast) var(--ease-out);
+  }
+}
+
+.site-header__toggle--open {
+  span:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+  span:nth-child(2) {
+    opacity: 0;
+  }
+  span:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .site-header__toggle {
+    display: flex;
+  }
+}
+
+@media (max-width: 767.98px) {
+  // Full-screen overlay, not the default dropdown-below-navbar collapse
+  // (design concept §Mobile Navigation).
+  .site-header__menu {
+    position: fixed;
+    inset: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    background: var(--color-bg);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur-base) var(--ease-out);
+  }
+
+  .site-header__menu.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .site-header__links {
+    width: 100%;
+    padding: 0 var(--space-6);
+    gap: var(--space-2) !important;
+  }
+
+  .site-header__links .nav-item {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  .site-header__menu.show .nav-item {
+    animation: menuItemIn var(--dur-base) var(--ease-out) forwards;
+    animation-delay: calc(var(--i, 0) * 60ms);
+  }
+
+  .site-header__links .nav-link {
+    font-size: 1.5rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--color-text);
+    padding: var(--space-3) 0;
+  }
+
+  .site-header__theme,
+  .site-header__cta-item {
+    margin-top: var(--space-4);
+  }
+}
+
+@keyframes menuItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Hero (design concept §10-11) — asymmetric grid, geometric portrait frame,
+// staged entrance sequence. `.hero__stage` items each carry their own
+// `--stage` index (set inline from Hero.tsx) so the delay is computed once
+// here instead of six separate hand-tuned `animation-delay`s.
+// ---------------------------------------------------------------------------
+.hero {
+  position: relative;
+  padding: var(--space-9) 0 var(--space-8);
+  overflow: hidden;
+}
+
+.hero__grid-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-text) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-text) 5%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 60% 55% at 30% 20%, black, transparent 72%);
+}
+
+.hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-4);
+}
+
+.hero__eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.hero__name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.75rem, 6vw, 4.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-4);
+}
+
+.hero__bio {
+  max-width: 52ch;
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-5);
+}
+
+.hero__cta {
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.4rem;
+  font-weight: 500;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.btn-primary.hero__cta:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+.hero__social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-muted);
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+    transform: translateY(-2px);
+  }
+}
+
+.hero__portrait {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  background: linear-gradient(
+    155deg,
+    color-mix(in srgb, var(--color-accent) 16%, var(--color-surface)),
+    var(--color-surface) 55%,
+    color-mix(in srgb, var(--color-accent-2) 10%, var(--color-surface))
+  );
+  box-shadow: var(--shadow-lg);
+}
+
+.hero__portrait-img {
+  object-fit: cover;
+}
+
+.hero__portrait-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: var(--color-text-faint);
+}
+
+.hero__portrait-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border: 2px solid color-mix(in srgb, var(--color-accent) 65%, transparent);
+  z-index: 1;
+}
+
+.hero__portrait-corner--tl {
+  top: 14px;
+  left: 14px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.hero__portrait-corner--br {
+  bottom: 14px;
+  right: 14px;
+  border-left: 0;
+  border-top: 0;
+}
+
+// Entrance sequence — see Hero.tsx's comment for why this is plain CSS
+// `animation`, not `Reveal`'s IntersectionObserver.
+.hero__stage {
+  animation: heroStageIn var(--dur-slow) var(--ease-out) both;
+  animation-delay: calc(var(--stage, 0) * 90ms);
+}
+
+// More specific than `.hero__stage` alone, so it overrides just
+// `animation-name` — the portrait gets a scale-in (depth), not the text
+// items' translateY, while keeping the same delay formula.
+.hero__portrait.hero__stage {
+  animation-name: heroPortraitIn;
+}
+
+@keyframes heroStageIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes heroPortraitIn {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__stage {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Section heading — the plain `<h2>` treatment every homepage section below
+// the hero shares, so it's defined once rather than repeated inline.
+// ---------------------------------------------------------------------------
+.section-heading {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--space-5);
+}
+
+// ---------------------------------------------------------------------------
+// About preview (design concept §11) — one statement, then a row of
+// capability pillars (real skill-category names, see AboutPreview.tsx).
+// ---------------------------------------------------------------------------
+.about-preview {
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.about-preview__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-3);
+}
+
+.about-preview__statement {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+  line-height: 1.3;
+  max-width: 34ch;
+  margin-bottom: var(--space-4);
+}
+
+.about-preview__pillars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--color-border);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: var(--space-7);
+}
+
+.about-preview__pillar {
+  background: var(--color-surface);
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  .bi {
+    font-size: 1.3rem;
+    color: var(--color-accent);
+  }
+}
+
+.about-preview__pillar-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 767.98px) {
+  .about-preview__pillars {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Skills preview (design concept §12) — category tabs, no percentage bars.
+// ---------------------------------------------------------------------------
+.skills-preview {
+  padding: var(--space-8) 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.skills-preview__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.skills-preview__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border-strong);
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out);
+}
+
+.skills-preview__tab--active {
+  background: var(--color-accent-soft);
+  border-color: transparent;
+  color: var(--color-accent);
+}
+
+.skills-preview__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+.skills-preview__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+  animation: heroStageIn var(--dur-base) var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--color-accent);
+  }
+}
+
+.skills-preview__item-icon {
+  font-size: 1.2rem;
+  color: var(--color-accent);
+}
+
+.skills-preview__item-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex: 1;
+}
+
+.skills-preview__item-level {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-faint);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skills-preview__item {
+    animation: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Shared "View all →" section link (About/Projects/Security/Articles).
+// ---------------------------------------------------------------------------
+.section-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  text-decoration: none;
+
+  .bi {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+
+  &:hover .bi {
+    transform: translate(3px, -3px);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Projects (design concept §13) — one large featured project, then a grid
+// of `.project-card`s with a subtle zoom/lift/arrow-move hover.
+// ---------------------------------------------------------------------------
+.projects-preview {
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.project-lead {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--space-6);
+  align-items: stretch;
+  margin-top: var(--space-6);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+
+  &:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:hover .project-lead__img {
+    transform: scale(1.03);
+  }
+
+  &:hover .project-lead__cta .bi {
+    transform: translate(3px, -3px);
+  }
+}
+
+.project-lead__media {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  min-height: 260px;
+  background: var(--color-surface-raised);
+}
+
+.project-lead__img {
+  object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.project-lead__placeholder {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-accent) 12%, var(--color-surface-raised)),
+    var(--color-surface-raised)
+  );
+}
+
+.project-lead__body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+.project-lead__tag {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+.project-lead__tag--security {
+  color: var(--color-severity-low);
+  background: var(--color-severity-low-soft);
+}
+
+.project-lead__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.4rem, 2.6vw, 2rem);
+  color: var(--color-text);
+}
+
+.project-lead__desc {
+  color: var(--color-text-muted);
+  max-width: 48ch;
+}
+
+.project-lead__cta {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-text);
+  margin-top: var(--space-2);
+
+  .bi {
+    transition: transform var(--dur-fast) var(--ease-out);
+  }
+}
+
+@media (max-width: 767.98px) {
+  .project-lead {
+    grid-template-columns: 1fr;
+  }
+
+  .project-lead__media {
+    min-height: 200px;
+  }
+}
+
+// `.project-card` extends the plain Bootstrap `.card` this component
+// already renders — the hover choreography (design concept §Project Card):
+// fast, smooth, subtle. Never a jump.
+.project-card {
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.project-card__media {
+  overflow: hidden;
+}
+
+.project-card__img {
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.project-card:hover .project-card__img {
+  transform: scale(1.04);
+}
+
+.project-card__arrow {
+  color: var(--color-text-faint);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.project-card:hover .project-card__arrow {
+  transform: translate(3px, -3px);
+  color: var(--color-accent);
+}
+
+// ---------------------------------------------------------------------------
+// Security (design concept §14) — the ONLY place `.tone-security` is
+// applied (see `_themes.scss`), and the only place a scan-line sweep
+// appears. Systems/network visual language, kept abstract: a grid and a
+// moving light band, never a fake terminal.
+// ---------------------------------------------------------------------------
+.security-preview {
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-accent-2) 4%, var(--color-bg));
+}
+
+.security-preview__scanpanel {
+  position: relative;
+  height: 64px;
+  margin-bottom: var(--space-6);
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--color-text) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-text) 6%, transparent) 1px,
+      transparent 1px
+    );
+  background-size: 24px 24px;
+}
+
+.security-preview__scanline {
+  position: absolute;
+  inset: 0 auto 0 -30%;
+  width: 26%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-accent-2) 45%, transparent),
+    transparent
+  );
+  animation: securityScan 4.5s ease-in-out infinite;
+}
+
+@keyframes securityScan {
+  0% {
+    left: -30%;
+  }
+  100% {
+    left: 104%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .security-preview__scanline {
+    animation: none;
+    display: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Articles (design concept §15) — editorial: one featured article, then a
+// plain title/category/date list, not a second row of cards.
+// ---------------------------------------------------------------------------
+.articles-preview {
+  padding: var(--space-8) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.article-lead {
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: var(--space-6);
+  align-items: center;
+  margin-top: var(--space-6);
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  text-decoration: none;
+  color: inherit;
+
+  &:hover .article-lead__img {
+    transform: scale(1.03);
+  }
+
+  &:hover .article-lead__title {
+    color: var(--color-accent);
+  }
+}
+
+.article-lead__media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.article-lead__img {
+  object-fit: cover;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+.article-lead__category {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+.article-lead__title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.3rem, 2.4vw, 1.85rem);
+  margin: var(--space-2) 0 var(--space-3);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.article-lead__excerpt {
+  color: var(--color-text-muted);
+  max-width: 48ch;
+}
+
+.article-lead__meta {
+  display: block;
+  margin-top: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-text-faint);
+}
+
+.article-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.article-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-border);
+  text-decoration: none;
+  color: inherit;
+}
+
+.article-row__meta {
+  flex: 0 0 160px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-faint);
+}
+
+.article-row__title {
+  flex: 1;
+  font-weight: 600;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.article-row:hover .article-row__title {
+  transform: translateX(6px);
+  color: var(--color-accent);
+}
+
+.article-row__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: none;
+}
+
+.article-row__time {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-faint);
+}
+
+.article-row__arrow {
+  color: var(--color-text-faint);
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.article-row:hover .article-row__arrow {
+  transform: translateX(4px);
+  color: var(--color-accent);
+}
+
+@media (max-width: 767.98px) {
+  .article-lead {
+    grid-template-columns: 1fr;
+  }
+
+  .article-row {
+    flex-wrap: wrap;
+  }
+
+  .article-row__meta {
+    flex-basis: 100%;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Journey / timeline (design concept §16) — vertical line drawn via the
+// list's own `::before`, points revealed with `Reveal`'s stagger variant.
+// ---------------------------------------------------------------------------
+.journey {
+  padding: var(--space-8) 0;
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+.journey__list {
+  position: relative;
+  max-width: 62ch;
+  padding-left: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: var(--color-border-strong);
+  }
+}
+
+.journey__point {
+  position: relative;
+}
+
+.journey__dot {
+  position: absolute;
+  left: calc(-1 * var(--space-6) + 1px);
+  top: 6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-bg);
+}
+
+.journey__date {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-faint);
+  margin-bottom: var(--space-1);
+}
+
+.journey__title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: var(--space-1);
+}
+
+.journey__desc {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+// ---------------------------------------------------------------------------
+// Contact CTA (homepage closing banner) + the /contact page itself
+// (design concept §17).
+// ---------------------------------------------------------------------------
+.contact-cta {
+  padding: var(--space-9) 0;
+}
+
+.contact-cta__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-3);
+}
+
+.contact-cta__statement {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  margin-bottom: var(--space-3);
+}
+
+.contact-cta__sub {
+  color: var(--color-text-muted);
+  max-width: 48ch;
+  margin: 0 auto var(--space-6);
+}
+
+// `padding-top`/`padding-bottom` only — NOT the `padding` shorthand.
+// `contact/page.tsx` puts this class on the SAME element as `.container`
+// (`<div className="container contact-page">`), and the shorthand's
+// implicit `padding-left/right: 0` was overwriting Bootstrap's own
+// `.container` padding (`calc(var(--bs-gutter-x) * .5)`) — the real cause
+// of a 320px horizontal-scroll bug that first looked like the `.row`
+// gutter mismatch documented elsewhere in this file, but wasn't: a real
+// axe/320px pass caught it persisting even after that fix.
+.contact-page {
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-9);
+}
+
+.contact-page__statement {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
+  margin-bottom: var(--space-4);
+}
+
+.contact-page__sub {
+  color: var(--color-text-muted);
+  max-width: 42ch;
+}
+
+// ---------------------------------------------------------------------------
+// Footer (design concept §18) — minimal, two rows.
+// ---------------------------------------------------------------------------
+.site-footer {
+  margin-top: auto;
+  padding: var(--space-7) 0 var(--space-6);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.site-footer__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-5);
+  padding-bottom: var(--space-5);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-footer__brand {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.site-footer__tagline {
+  margin-top: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  max-width: 36ch;
+}
+
+.site-footer__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  // `--color-text-muted`, not `--color-text-faint` — a real axe run caught
+  // the faint tier failing contrast here (2.84:1 dark / 3.07:1 light) at
+  // this font size; `-faint` is for genuinely decorative text, and
+  // copyright/nav text needs to actually be readable.
+  color: var(--color-text-muted);
+
+  nav {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  nav a {
+    color: var(--color-text-muted);
+    text-decoration: none;
+
+    &:hover {
+      color: var(--color-accent);
+    }
+  }
+}
+
+@media (max-width: 575.98px) {
+  .site-footer__top,
+  .site-footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Custom cursor (`CustomCursor.tsx`) — desktop only, see that component's
+// own comment for the guards. `left/top` stay 0 and centering is done with
+// negative margins (NOT part of the `transform` the component sets every
+// mousemove — the two would otherwise fight over the same property).
+// ---------------------------------------------------------------------------
+.has-custom-cursor,
+.has-custom-cursor a,
+.has-custom-cursor button {
+  cursor: none;
+}
+
+.custom-cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  pointer-events: none;
+  z-index: 2000;
+  mix-blend-mode: difference;
+  transition:
+    width var(--dur-fast) var(--ease-out),
+    height var(--dur-fast) var(--ease-out),
+    margin var(--dur-fast) var(--ease-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-cursor--label {
+  width: 64px;
+  height: 64px;
+  margin-left: -32px;
+  margin-top: -32px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+}
+
+.custom-cursor__text {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  mix-blend-mode: normal;
+}
+
+@media (max-width: 991.98px) {
+  // Belt-and-suspenders: `CustomCursor.tsx`'s own `(hover: hover) and
+  // (pointer: fine)` check already keeps this off touch devices, but a
+  // hybrid device (a touchscreen laptop) can match that query while still
+  // being used mostly by touch — hiding it below the tablet breakpoint too
+  // costs nothing on a real desktop, which is always wider than this.
+  .custom-cursor {
+    display: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Page transition (design concept "Page Transitions") — a light fade +
+// small vertical move on every route change, via `PageTransition.tsx`
+// wrapping `{children}` in the public layout.
+// ---------------------------------------------------------------------------
+.page-transition {
+  animation: pageTransitionIn var(--dur-base) var(--ease-out) both;
+}
+
+@keyframes pageTransitionIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition {
+    animation: none;
+  }
+}

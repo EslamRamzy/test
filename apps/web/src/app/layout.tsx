@@ -1,8 +1,41 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { IBM_Plex_Mono, IBM_Plex_Sans, Unbounded } from 'next/font/google';
 import { getProfile } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
 import '@/styles/globals.scss';
+
+/**
+ * Self-hosted via `next/font/google` (doc 06 §9: "self-hosted, display:
+ * swap, preloaded subset") — Next downloads these at BUILD time and serves
+ * them from this app's own origin; the browser never requests
+ * fonts.googleapis.com, so there's no third-party request, no render-
+ * blocking @import, and `display: swap` is built into the mechanism.
+ *
+ * Each `variable` is deliberately NOT named `--font-sans`/`--font-mono`/
+ * `--font-display` — those names belong to `_tokens.scss`'s own tokens,
+ * which reference the `-nf` variable below as their first fallback. Two
+ * independent names avoids any doubt about which stylesheet's declaration
+ * of the same custom-property name would win the cascade.
+ */
+const displayFont = Unbounded({
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
+  variable: '--font-display-nf',
+  display: 'swap',
+});
+const sansFont = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans-nf',
+  display: 'swap',
+});
+const monoFont = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono-nf',
+  display: 'swap',
+});
 
 const FALLBACK_DESCRIPTION = 'Full-stack development and application security.';
 
@@ -60,7 +93,7 @@ const THEME_INIT_SCRIPT = `
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${displayFont.variable} ${sansFont.variable} ${monoFont.variable}`}>
       <head>
         {/* Plain JSX children, not dangerouslySetInnerHTML — restricted
             repo-wide to lib/markdown/render.ts (eslint.config.mjs). This

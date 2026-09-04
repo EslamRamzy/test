@@ -137,7 +137,18 @@ export function ContactForm(): React.JSX.Element {
         </div>
       )}
 
-      <button type="submit" className="btn btn-primary" disabled={status === 'submitting'}>
+      <button
+        type="submit"
+        className="btn btn-primary hero__cta"
+        disabled={status === 'submitting'}
+      >
+        {status === 'submitting' && (
+          <span
+            className="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+          />
+        )}
         {status === 'submitting' ? 'Sending…' : 'Send Message'}
       </button>
     </form>

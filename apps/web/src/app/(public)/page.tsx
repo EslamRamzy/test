@@ -54,7 +54,7 @@ export default async function HomePage() {
         <QuickStats stats={home.stats} />
       </Reveal>
       <Reveal>
-        <AboutPreview profile={home.profile} />
+        <AboutPreview profile={home.profile} skillCategories={home.skillCategories} />
       </Reveal>
       <Reveal>
         <SkillsPreview skillCategories={home.skillCategories} />
@@ -68,9 +68,11 @@ export default async function HomePage() {
       <Reveal>
         <ArticlesPreview articles={home.latestArticles} />
       </Reveal>
-      <Reveal>
-        <Journey entries={home.timeline} />
-      </Reveal>
+      {/* No outer `<Reveal>` here — `Journey` already reveals its own
+          timeline points individually (stagger variant), so wrapping the
+          whole section again would just add a second, redundant
+          IntersectionObserver over the first. */}
+      <Journey entries={home.timeline} />
       <Reveal>
         <ContactCta />
       </Reveal>

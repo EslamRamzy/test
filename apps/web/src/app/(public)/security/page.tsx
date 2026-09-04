@@ -40,7 +40,7 @@ export default async function SecurityPage({ searchParams }: SecurityPageProps) 
   }
 
   return (
-    <div className="container py-5">
+    <div className="container py-5 tone-security">
       <h1 className="h2 mb-4">Security Research</h1>
 
       <div className="d-flex flex-wrap gap-2 mb-4" role="group" aria-label="Filter by category">

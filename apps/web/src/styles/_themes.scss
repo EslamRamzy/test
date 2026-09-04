@@ -18,10 +18,10 @@
   // `--bs-primary`/`--bs-link-color` like everything else here, so it's
   // the one Bootstrap utility this file's other overrides don't reach.
   // Caught by a real axe run: it kept rendering the LIGHT theme's accent
-  // (#2760e8, only 3.3-3.6:1 against dark backgrounds) even with
-  // `data-theme="dark"` set, because nothing overrode this specific
-  // variable. Must be kept in sync with `--color-accent`'s dark value.
-  --bs-primary-rgb: 107, 147, 255;
+  // even with `data-theme="dark"` set, because nothing overrode this
+  // specific variable. Must be kept in sync with `--color-accent`'s dark
+  // value (#e2a53f → rgb(226,165,63)).
+  --bs-primary-rgb: 226, 165, 63;
 
   .btn-primary {
     --bs-btn-bg: var(--color-accent);
@@ -63,16 +63,34 @@
   // solid fill with Bootstrap's own precomputed white text
   // (`color: color-contrast($primary) !important`, fixed at build time —
   // see node_modules/bootstrap/scss/helpers/_color-bg.scss). The dark
-  // theme's `--color-accent` (#6b93ff) is deliberately a BRIGHT blue,
-  // chosen for blue-text-on-dark-background legibility, not for holding
-  // white text on top of it — white-on-#6b93ff only reaches 2.89:1 (a
-  // real axe run caught this on the `/projects` technology-filter
-  // badges). The fixed light-mode blue (#2760e8) passes as a fill in
-  // either theme, so this pins the background there regardless of
-  // `--bs-primary-rgb`'s theme-reactive value above.
+  // theme's `--color-accent` (#e2a53f) is deliberately a BRIGHT amber,
+  // chosen for amber-text-on-dark-background legibility, not for holding
+  // white text on top of it — white-on-#e2a53f fails contrast the same
+  // way white-on-bright-blue did in the previous palette (verified against
+  // that real axe finding before this redesign). The deepened light-mode
+  // amber (#835914 — see `_tokens.scss`'s comment for why it's this value
+  // and not the first pass) passes as a fill in either theme, so this pins
+  // the background there regardless of `--bs-primary-rgb`'s theme-reactive
+  // value above.
   .text-bg-primary {
-    background-color: #2760e8 !important;
+    background-color: #835914 !important;
   }
+}
+
+/**
+ * The Security register (docs/design concept §14: "Cyan appears ONLY
+ * here"). `.tone-security` is applied to one ancestor — the Security
+ * homepage preview, the /security list and detail pages — and everything
+ * inside it that would otherwise reach for the amber accent reads
+ * `--color-accent-2` instead. Nothing outside this scope may reference
+ * `--color-accent-2` directly; that restriction IS what keeps the cyan
+ * rare enough to still mean something when it appears.
+ */
+.tone-security {
+  --color-accent: var(--color-accent-2);
+  --color-accent-strong: var(--color-accent-2);
+  --color-accent-soft: var(--color-accent-2-soft);
+  --color-on-accent: var(--color-on-accent-2);
 }
 
 @media (prefers-color-scheme: dark) {

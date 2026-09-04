@@ -1,13 +1,15 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 6 of 16 complete** — the full public website (all 12 routes, the 10 homepage
-> sections, the case-study renderer, the sanitized markdown pipeline, light/dark theming with no
-> flash) renders entirely from the real Phase 5 API, zero hardcoded content. Lighthouse ≥ 90 on
-> Performance/Accessibility/Best Practices/SEO (three of four at 100 on `/projects`; the one
-> non-100 elsewhere traces to a disposable test-environment gap, not a code defect — see the
-> report) and axe reports zero violations across all 12 routes in both themes. See the
-> [Phase 6 report](phases/phase-06-report.md). Phase 7 (Admin shell) is unblocked. No open
-> decisions remain that block current work — see
+> **Status: Phase 6 of 16 complete, plus an approved visual redesign** — the full public website
+> (all 12 routes, the 10 homepage sections, the case-study renderer, the sanitized markdown
+> pipeline, light/dark theming with no flash) renders entirely from the real Phase 5 API, zero
+> hardcoded content, now carrying the "Amber Signal" visual identity approved after a design-
+> concept review. Lighthouse ≥ 90 on Performance/Accessibility/Best Practices/SEO (100 on three of
+> four checked routes; the one non-100 elsewhere traces to a disposable test-environment gap, not
+> a code defect) and axe reports zero violations across all 12 routes in both themes. See the
+> [Phase 6 report](phases/phase-06-report.md) and the
+> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 7 (Admin shell) is
+> unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
 > next phase.
@@ -40,6 +42,12 @@
 | 4 | [Authentication + authorization](phases/phase-04-report.md) |
 | 5 | [Public API](phases/phase-05-report.md) |
 | 6 | [Public website](phases/phase-06-report.md) |
+
+## Design
+
+| Document | Purpose |
+|---|---|
+| [Amber Signal redesign](design/amber-signal-redesign.md) | Approved visual identity applied to the Phase 6 public site — tokens, components, real bugs found and fixed |
 
 ## How to review
 

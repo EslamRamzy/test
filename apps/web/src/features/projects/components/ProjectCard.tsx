@@ -18,25 +18,30 @@ interface ProjectCardProps {
 export function ProjectCard({ project, headingLevel = 'h3' }: ProjectCardProps): React.JSX.Element {
   const Heading = headingLevel;
   return (
-    <Link href={`/projects/${project.slug}`} className="card h-100 text-decoration-none text-reset">
+    <Link
+      href={`/projects/${project.slug}`}
+      className="card project-card h-100 text-decoration-none text-reset"
+      data-cursor="View"
+    >
       {project.coverMedia && (
-        <div className="ratio ratio-16x9">
+        <div className="ratio ratio-16x9 project-card__media">
           <PublicMediaImage
             media={project.coverMedia}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="card-img-top object-fit-cover"
+            className="card-img-top object-fit-cover project-card__img"
           />
         </div>
       )}
       <div className="card-body d-flex flex-column">
         <div className="d-flex align-items-center gap-2 mb-2">
-          <Heading className="h5 mb-0">{project.title}</Heading>
+          <Heading className="h5 mb-0 project-card__title">{project.title}</Heading>
           {project.securityTested && (
             <span className="badge text-bg-success" title="Security tested">
               <span className="bi bi-shield-check" aria-hidden="true" />
             </span>
           )}
+          <span className="bi bi-arrow-up-right project-card__arrow ms-auto" aria-hidden="true" />
         </div>
         <p className="mb-3 flex-grow-1" style={{ color: 'var(--color-text-muted)' }}>
           {project.shortDescription}

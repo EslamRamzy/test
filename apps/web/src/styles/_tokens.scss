@@ -1,5 +1,11 @@
 /**
- * Design tokens — the visual identity, independent of Bootstrap.
+ * Design tokens — "Amber Signal" (docs/design/amber-signal-concept, approved
+ * direction: Premium Dark Developer + Subtle Cyber-Tech). One warm amber
+ * accent carries the everyday identity (CTAs, links, active nav, numbers);
+ * a cool cyan second accent is reserved for the Security register only —
+ * its rarity is what gives it meaning, so nothing outside `.tone-security`
+ * may reach for `--color-accent-2` (see globals.scss's ESLint-free
+ * "don't smear the security accent" note near that class).
  *
  * Bootstrap supplies the grid, utilities and accessible component primitives.
  * These custom properties supply the look, and because they are runtime CSS
@@ -11,51 +17,106 @@
  * before first paint, wins when present. With no explicit choice, the
  * `prefers-color-scheme` media query decides — the dark values are
  * declared twice (once per path) rather than layered, so either path alone
- * is a complete, correct theme with nothing missing.
+ * is a complete, correct theme with nothing missing. Dark is the primary
+ * DESIGN identity (every concept decision was made dark-first); which one
+ * actually renders for a given visitor still follows their own system
+ * preference, never a forced default — doc 06 §5 already established that,
+ * and this redesign has no reason to override a visitor's own choice.
  */
 
 :root {
   color-scheme: light;
 
-  --color-bg: #ffffff;
-  --color-surface: #f7f8fa;
+  --color-bg: #f4f5f8;
+  --color-surface: #ffffff;
   --color-surface-raised: #ffffff;
-  --color-border: #e6e8ec;
-  --color-text: #16181d;
-  --color-text-muted: #5b6472;
-  // #2f6bff (the original design-doc blue) measures 4.49:1 against white —
-  // WCAG AA needs 4.5:1 for normal text, and axe correctly flags it on
-  // `.link-primary`/`.text-primary` (confirmed via a real Lighthouse
-  // accessibility audit). Darkened just enough for real margin (5.3:1+
-  // against both `--color-bg` and `--color-surface`) rather than chasing
-  // the threshold exactly.
-  --color-accent: #2760e8;
-  --color-accent-soft: #eaf0ff;
+  --color-border: #e1e4ea;
+  --color-border-strong: #cbd0db;
+  --color-text: #14171f;
+  --color-text-muted: #565f72;
+  --color-text-faint: #8b93a6;
+
+  // Amber — the everyday signal. A first pass (#b87a1e) was picked by
+  // reasoning from an unrelated color's contrast math instead of actually
+  // computing THIS hex — a real Lighthouse run against the security page
+  // caught it at 3.3:1 against --color-bg (needs 4.5:1). Recomputed
+  // properly this time: #835914 clears --color-bg, --color-surface, AND
+  // --color-accent-soft (the tightest of the three, since a badge/tab's
+  // own tinted fill sits closer in lightness to the accent than the page
+  // background does) with real margin (4.9:1+ everywhere it's used as
+  // text). The dark theme's brighter #e2a53f would fail AA on this light
+  // ground the same way the first light value did.
+  --color-accent: #835914;
+  --color-accent-strong: #6b4810;
+  --color-accent-soft: #f3e4c9;
   --color-on-accent: #ffffff;
 
-  // Security-finding severities (docs/architecture/02 §3) — distinct,
-  // consistent hues used everywhere a severity badge renders, in both
-  // themes, so CRITICAL always reads as the most alarming color present.
-  --color-severity-critical: #b42318;
-  --color-severity-critical-soft: #fef1f0;
-  --color-severity-high: #c4320a;
-  --color-severity-high-soft: #fff2ea;
-  --color-severity-medium: #b54708;
-  --color-severity-medium-soft: #fff6e8;
-  --color-severity-low: #175cd3;
-  --color-severity-low-soft: #eef4ff;
-  --color-severity-informational: #475467;
-  --color-severity-informational-soft: #f2f4f7;
+  // Cyan — Security only. Same "deepened for light, brightened for dark"
+  // relationship as the amber pair above, same real-contrast-math
+  // correction (#0e8f8a measured 3.6-4.0:1; #096863 clears 6:1+).
+  --color-accent-2: #096863;
+  --color-accent-2-soft: #d8f0ee;
+  --color-on-accent-2: #ffffff;
+
+  // Security-finding severities (docs/architecture/02 §3) — a distinct hue
+  // family from the accent on purpose (semantic color must never be read as
+  // "the brand color"), consistent everywhere a severity badge renders.
+  // `-high` and `-medium` are corrected here too, for the same reason as
+  // the accent pair above (a real check, not reused math): the first
+  // values measured 3.6:1 and 3.0:1 against --color-bg.
+  --color-severity-critical: #c23b2e;
+  --color-severity-critical-soft: #fbeae8;
+  --color-severity-high: #a5591a;
+  --color-severity-high-soft: #fbf0e6;
+  --color-severity-medium: #7a6313;
+  --color-severity-medium-soft: #f7f1de;
+  --color-severity-low: #1f6fb0;
+  --color-severity-low-soft: #e8f1fa;
+  --color-severity-informational: #565f72;
+  --color-severity-informational-soft: #eceef2;
 
   --radius-sm: 6px;
   --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+  --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 2px rgb(16 24 40 / 6%);
-  --shadow-md: 0 4px 12px rgb(16 24 40 / 8%);
+  --shadow-sm: 0 1px 2px rgb(20 23 31 / 8%);
+  --shadow-md: 0 8px 24px -10px rgb(20 23 31 / 18%);
+  --shadow-lg: 0 24px 48px -20px rgb(20 23 31 / 24%);
+  // CTA-hover only (docs/design concept §Shadow System) — never a default
+  // card/button shadow, so its rare appearance still reads as emphasis.
+  --shadow-glow: 0 0 0 1px rgb(184 122 30 / 25%), 0 8px 28px -10px rgb(184 122 30 / 22%);
 
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', menlo, monospace;
+  // 4px-based spacing scale (docs/design concept §Spacing System).
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+
+  // Motion (docs/design concept §Motion System) — one easing curve, three
+  // durations, everywhere. transform/opacity only; see globals.scss's
+  // `.reveal-*` utilities and `hooks/useReveal.ts`.
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 300ms;
+  --dur-slow: 500ms;
+
+  // `-nf` variables come from `next/font/google` in layout.tsx (self-hosted,
+  // no third-party request) — these tokens exist so every OTHER file keeps
+  // saying `var(--font-sans)` etc. without knowing that detail; the literal
+  // family names after it are the safety-net fallback if that variable is
+  // ever unset for some reason.
+  --font-sans:
+    var(--font-sans-nf), 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', roboto, sans-serif;
+  --font-display: var(--font-display-nf), var(--font-sans);
+  --font-mono:
+    var(--font-mono-nf), 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', menlo, monospace;
 
   // Shiki's own dual-theme output (styles/_markdown.scss resolves these).
   --shiki-light: initial;
@@ -66,56 +127,76 @@
   :root:not([data-theme='light']) {
     color-scheme: dark;
 
-    --color-bg: #0d0f14;
-    --color-surface: #14171f;
-    --color-surface-raised: #1a1e28;
-    --color-border: #232733;
-    --color-text: #e8eaf0;
-    --color-text-muted: #9aa3b2;
-    --color-accent: #6b93ff;
-    --color-accent-soft: #18203a;
-    --color-on-accent: #0d0f14;
+    --color-bg: #0a0d13;
+    --color-surface: #12151e;
+    --color-surface-raised: #1a1f2b;
+    --color-border: #232838;
+    --color-border-strong: #303748;
+    --color-text: #edeff3;
+    --color-text-muted: #8b93a6;
+    --color-text-faint: #565f72;
 
-    --color-severity-critical: #f97066;
-    --color-severity-critical-soft: #2d1210;
-    --color-severity-high: #ff9c66;
-    --color-severity-high-soft: #2c1a0d;
-    --color-severity-medium: #fdb022;
-    --color-severity-medium-soft: #2b2008;
-    --color-severity-low: #84adff;
-    --color-severity-low-soft: #101d33;
-    --color-severity-informational: #98a2b3;
-    --color-severity-informational-soft: #1d2129;
+    --color-accent: #e2a53f;
+    --color-accent-strong: #f0b959;
+    --color-accent-soft: #2a2214;
+    --color-on-accent: #1a1206;
+
+    --color-accent-2: #3fc7c2;
+    --color-accent-2-soft: #0f2624;
+    --color-on-accent-2: #062120;
+
+    --color-severity-critical: #e2564a;
+    --color-severity-critical-soft: #2d1613;
+    --color-severity-high: #e2874a;
+    --color-severity-high-soft: #2c1c10;
+    --color-severity-medium: #d9c15a;
+    --color-severity-medium-soft: #2a2612;
+    --color-severity-low: #4fa8e2;
+    --color-severity-low-soft: #101d2c;
+    --color-severity-informational: #8b93a6;
+    --color-severity-informational-soft: #1a1e28;
 
     --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
-    --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
+    --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 50%);
+    --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 60%);
+    --shadow-glow: 0 0 0 1px rgb(226 165 63 / 35%), 0 8px 32px -8px rgb(226 165 63 / 22%);
   }
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  --color-bg: #0d0f14;
-  --color-surface: #14171f;
-  --color-surface-raised: #1a1e28;
-  --color-border: #232733;
-  --color-text: #e8eaf0;
-  --color-text-muted: #9aa3b2;
-  --color-accent: #6b93ff;
-  --color-accent-soft: #18203a;
-  --color-on-accent: #0d0f14;
+  --color-bg: #0a0d13;
+  --color-surface: #12151e;
+  --color-surface-raised: #1a1f2b;
+  --color-border: #232838;
+  --color-border-strong: #303748;
+  --color-text: #edeff3;
+  --color-text-muted: #8b93a6;
+  --color-text-faint: #565f72;
 
-  --color-severity-critical: #f97066;
-  --color-severity-critical-soft: #2d1210;
-  --color-severity-high: #ff9c66;
-  --color-severity-high-soft: #2c1a0d;
-  --color-severity-medium: #fdb022;
-  --color-severity-medium-soft: #2b2008;
-  --color-severity-low: #84adff;
-  --color-severity-low-soft: #101d33;
-  --color-severity-informational: #98a2b3;
-  --color-severity-informational-soft: #1d2129;
+  --color-accent: #e2a53f;
+  --color-accent-strong: #f0b959;
+  --color-accent-soft: #2a2214;
+  --color-on-accent: #1a1206;
+
+  --color-accent-2: #3fc7c2;
+  --color-accent-2-soft: #0f2624;
+  --color-on-accent-2: #062120;
+
+  --color-severity-critical: #e2564a;
+  --color-severity-critical-soft: #2d1613;
+  --color-severity-high: #e2874a;
+  --color-severity-high-soft: #2c1c10;
+  --color-severity-medium: #d9c15a;
+  --color-severity-medium-soft: #2a2612;
+  --color-severity-low: #4fa8e2;
+  --color-severity-low-soft: #101d2c;
+  --color-severity-informational: #8b93a6;
+  --color-severity-informational-soft: #1a1e28;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
-  --shadow-md: 0 4px 12px rgb(0 0 0 / 50%);
+  --shadow-md: 0 8px 24px -8px rgb(0 0 0 / 50%);
+  --shadow-lg: 0 24px 48px -16px rgb(0 0 0 / 60%);
+  --shadow-glow: 0 0 0 1px rgb(226 165 63 / 35%), 0 8px 32px -8px rgb(226 165 63 / 22%);
 }

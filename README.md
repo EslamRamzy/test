@@ -3,15 +3,17 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 6 of 16 — public website.**
+> **Status: Phase 6 of 16 — public website, now carrying an approved visual redesign.**
 > Database (Phase 2), backend foundation (Phase 3), auth (Phase 4), the full public REST API
-> (Phase 5), and now the full public website — all 12 routes, the 10 homepage sections, the
+> (Phase 5), and the full public website — all 12 routes, the 10 homepage sections, the
 > case-study renderer, the sanitized markdown pipeline, and light/dark theming with no flash —
-> render entirely from that real API, with zero hardcoded content. Lighthouse ≥ 90 on
-> Performance/Accessibility/Best Practices/SEO and axe reports zero violations across every route
-> in both themes. See [`docs/`](docs/README.md) and the
-> [Phase 6 report](docs/phases/phase-06-report.md). There is no admin dashboard UI and no admin
-> content routes yet — those arrive in Phases 7–13 per the
+> render entirely from that real API, with zero hardcoded content. The site now carries the
+> "Amber Signal" visual identity, approved as a design concept before implementation. Lighthouse
+> ≥ 90 on Performance/Accessibility/Best Practices/SEO and axe reports zero violations across
+> every route in both themes. See [`docs/`](docs/README.md), the
+> [Phase 6 report](docs/phases/phase-06-report.md), and the
+> [redesign report](docs/design/amber-signal-redesign.md). There is no admin dashboard UI and no
+> admin content routes yet — those arrive in Phases 7–13 per the
 > [implementation plan](docs/architecture/11-implementation-plan.md).
 
 ---

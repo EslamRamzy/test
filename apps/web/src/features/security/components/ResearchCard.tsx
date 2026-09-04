@@ -25,22 +25,26 @@ export function ResearchCard({
   return (
     <Link
       href={`/security/${research.slug}`}
-      className="card h-100 text-decoration-none text-reset"
+      className="card project-card h-100 text-decoration-none text-reset"
+      data-cursor="View"
     >
       {research.coverMedia && (
-        <div className="ratio ratio-16x9">
+        <div className="ratio ratio-16x9 project-card__media">
           <PublicMediaImage
             media={research.coverMedia}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
-            className="card-img-top object-fit-cover"
+            className="card-img-top object-fit-cover project-card__img"
           />
         </div>
       )}
       <div className="card-body d-flex flex-column">
-        <span className="badge text-bg-secondary fw-normal mb-2 align-self-start">
-          {CATEGORY_LABELS[research.category]}
-        </span>
+        <div className="d-flex align-items-center">
+          <span className="badge text-bg-secondary fw-normal mb-2 align-self-start">
+            {CATEGORY_LABELS[research.category]}
+          </span>
+          <span className="bi bi-arrow-up-right project-card__arrow ms-auto" aria-hidden="true" />
+        </div>
         <Heading className="h5">{research.title}</Heading>
         {research.description && (
           <p className="mb-3 flex-grow-1" style={{ color: 'var(--color-text-muted)' }}>

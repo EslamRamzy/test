@@ -72,7 +72,7 @@ export default async function ResearchPage({ params }: ResearchPageProps) {
   };
 
   return (
-    <article className="container py-5">
+    <article className="container py-5 tone-security">
       <JsonLd data={jsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
       <nav aria-label="Breadcrumb" className="mb-3">

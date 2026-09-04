@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
+import { CustomCursor } from '@/components/layout/CustomCursor';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
+import { PageTransition } from '@/components/layout/PageTransition';
 import { getProfile } from '@/lib/api/endpoints';
 
 /**
@@ -20,12 +22,13 @@ export default async function PublicLayout({ children }: { children: ReactNode }
 
   return (
     <>
+      <CustomCursor />
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
       <Header siteName={siteName} />
       <main id="main-content" className="flex-grow-1">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
       <Footer siteName={siteName} socialLinks={socialLinks} />
     </>

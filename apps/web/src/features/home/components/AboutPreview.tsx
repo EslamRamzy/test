@@ -1,19 +1,55 @@
-import type { ProfileDto } from '@portfolio/shared';
+import type { ProfileDto, SkillCategoryDto } from '@portfolio/shared';
 import Link from 'next/link';
 
-export function AboutPreview({ profile }: { profile: ProfileDto }): React.JSX.Element | null {
-  if (!profile.fullBio && !profile.shortBio) return null;
+/**
+ * One large statement, not a paragraph (design concept §11) — `shortBio`
+ * (falling back to `fullBio`) IS that statement; nothing here is
+ * hardcoded copy standing in for it. The four "pillars" underneath reuse
+ * real skill-category names (already fetched for `SkillsPreview` on the
+ * same page — see `(public)/page.tsx`) rather than inventing a fixed
+ * label set: capability areas an admin actually maintains, not fabricated
+ * marketing copy pretending to be structured data.
+ */
+export function AboutPreview({
+  profile,
+  skillCategories,
+}: {
+  profile: ProfileDto;
+  skillCategories: SkillCategoryDto[];
+}): React.JSX.Element | null {
+  const statement = profile.shortBio ?? profile.fullBio;
+  if (!statement) return null;
+
+  const pillars = skillCategories.slice(0, 4);
 
   return (
-    <section className="py-5 border-bottom">
+    <section className="about-preview">
       <div className="container">
-        <h2 className="h3 mb-3">About</h2>
-        <p className="mb-3" style={{ maxWidth: '70ch' }}>
-          {profile.fullBio ?? profile.shortBio}
-        </p>
-        <Link href="/about" className="link-primary">
-          Read more <span className="bi bi-arrow-right" aria-hidden="true" />
-        </Link>
+        <div className="row">
+          <div className="col-lg-9">
+            <p className="about-preview__eyebrow">About</p>
+            <p className="about-preview__statement">{statement}</p>
+            <Link href="/about" className="section-link">
+              Read more
+              <span className="bi bi-arrow-right ms-2" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+
+        {pillars.length > 0 && (
+          <div className="about-preview__pillars">
+            {pillars.map((category, index) => (
+              <div
+                className="about-preview__pillar"
+                key={category.id}
+                style={{ '--i': index } as React.CSSProperties}
+              >
+                <span className={category.icon ?? 'bi bi-check2'} aria-hidden="true" />
+                <span className="about-preview__pillar-name">{category.name}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

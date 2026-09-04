@@ -3,16 +3,21 @@
  * docs/architecture/00 C2: this must not end up looking like a default
  * Bootstrap template).
  *
- * Every value here is a genuine, fixed Sass color/number — NOT a CSS custom
- * property reference. That was the first approach tried (`$body-bg:
- * var(--color-bg)` etc.) and it does not compile: Bootstrap's own
- * `_root.scss` runs real color math on several of these at build time
+ * Every COLOR/NUMBER value here is a genuine, fixed Sass literal — NOT a
+ * CSS custom property reference. That was the first approach tried
+ * (`$body-bg: var(--color-bg)` etc.) and it does not compile: Bootstrap's
+ * own `_root.scss` runs real color math on several of these at build time
  * (`to-rgb($body-bg)` for the `--bs-body-bg-rgb` companion variable,
  * `color-contrast()` for computed text colors, and more), which requires
  * an actual Sass color, not a runtime `var()` reference — verified
  * empirically against a real build failure, not assumed.
  *
- * The values below match `_tokens.scss`'s LIGHT palette exactly, so
+ * The three FONT-family values below are the one exception, and ARE
+ * `var()` references (see their own comment) — Bootstrap only ever passes
+ * a font-family straight through to a `font-family:` declaration, with no
+ * color-math equivalent, so nothing here forces them to be Sass literals.
+ *
+ * The color/number values below match `_tokens.scss`'s LIGHT palette exactly, so
  * Bootstrap's own compiled CSS is already correct for light mode with no
  * further help. Dark mode is handled the way `_root.scss` itself proves
  * IS reactive: Bootstrap publishes every one of these as a `--bs-*` CSS
@@ -27,46 +32,48 @@
   $enable-gradients: false,
   $enable-negative-margins: true,
 
-  $font-family-sans-serif: (
-    'Inter',
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    roboto,
-    sans-serif,
-  ),
-  $font-family-monospace: (
-    'JetBrains Mono',
-    ui-monospace,
-    'SFMono-Regular',
-    menlo,
-    monospace,
-  ),
+  // `var(--font-sans)` etc., not literal family names: Bootstrap only
+  // passes these straight through to a `font-family:` declaration — no
+  // compile-time color-math like `$primary` undergoes below — so a
+  // `var()` reference compiles fine, and it's the ONLY way this CSS
+  // actually reaches the `next/font`-self-hosted files (their real
+  // generated family name is an unpredictable hash; `--font-sans-nf`,
+  // set by `layout.tsx`'s `variable` option, is the one stable handle to
+  // it). A literal `'IBM Plex Sans'` here would silently miss the
+  // self-hosted font entirely and fall through to the system font, since
+  // next/font never registers under that exact name.
+  $font-family-sans-serif: var(--font-sans),
+  $font-family-monospace: var(--font-mono),
+  $headings-font-family: var(--font-display),
+  $headings-font-weight: 700,
 
-  // #2760e8, not the design doc's original #2f6bff — that measured 4.49:1
-  // against white, just under WCAG AA's 4.5:1 for normal text (caught by a
-  // real Lighthouse accessibility audit flagging `.link-primary`). Must
-  // stay in sync with `_tokens.scss`'s `--color-accent` (light value).
-  $primary: #2760e8,
+  // #835914 — the LIGHT-mode value specifically, deepened enough (4.9:1+
+  // against --color-bg, --color-surface, AND --color-accent-soft, the
+  // tightest of the three) to pass WCAG AA for normal text; the dark
+  // theme's brighter amber would fail on this light ground. A first pass
+  // here (#b87a1e) was corrected after a real Lighthouse run measured it
+  // at 3.3:1 — see `_tokens.scss`'s matching comment for the full story.
+  // Must stay in sync with `_tokens.scss`'s `--color-accent` (light value).
+  $primary: #835914,
 
-  $body-bg: #ffffff,
-  $body-color: #16181d,
-  $border-color: #e6e8ec,
-  $link-color: #2760e8,
-  $link-hover-color: #2760e8,
+  $body-bg: #f4f5f8,
+  $body-color: #14171f,
+  $border-color: #e1e4ea,
+  $link-color: #835914,
+  $link-hover-color: #6b4810,
 
-  $card-bg: #f7f8fa,
-  $card-border-color: #e6e8ec,
+  $card-bg: #ffffff,
+  $card-border-color: #e1e4ea,
 
-  $border-radius: 10px,
-  $border-radius-sm: 6px,
-  $border-radius-lg: 16px,
+  $border-radius: 14px,
+  $border-radius-sm: 8px,
+  $border-radius-lg: 20px,
 
-  $input-bg: #f7f8fa,
-  $input-border-color: #e6e8ec,
-  $input-color: #16181d,
+  $input-bg: #ffffff,
+  $input-border-color: #cbd0db,
+  $input-color: #14171f,
 
-  $code-color: #2760e8 // Bootstrap ships a `[data-bs-theme="dark"]`-keyed dark-mode system of
+  $code-color: #835914 // Bootstrap ships a `[data-bs-theme="dark"]`-keyed dark-mode system of
   // its own. This project never sets that attribute — only `[data-theme]`
   // — so the handful of Bootstrap component rules built on it compile into
   // the CSS but never match anything at runtime; dark mode is driven

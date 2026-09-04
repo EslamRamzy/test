@@ -10,6 +10,7 @@
 @use 'theme-vars';
 @use 'themes';
 @use 'markdown';
+@use 'components';
 @use 'bootstrap-icons/font/bootstrap-icons';
 
 // Sticky footer: the public layout's `<main class="flex-grow-1">` only has
@@ -60,19 +61,94 @@ body {
   }
 }
 
-// One-shot entrance reveal (docs/architecture/06 §5): opacity/transform
-// only, 200ms — an IntersectionObserver toggles `.is-visible` once per
-// element; `prefers-reduced-motion` above already neutralises the
-// transition duration for anyone who has asked for that.
-.reveal {
+/**
+ * Motion system (design concept §Motion): one easing curve
+ * (`--ease-out`), a small named set of one-shot entrance reveals, never
+ * looping (docs/architecture/06 §5). `hooks/useReveal.ts`'s
+ * IntersectionObserver toggles `.is-visible` once per element;
+ * `prefers-reduced-motion` above already neutralises every transition
+ * duration for anyone who has asked for that, so no variant needs its own
+ * reduced-motion guard.
+ *
+ * `.reveal` (bare) is an alias for `.reveal-up` — kept so existing
+ * call sites from before this redesign don't need to change.
+ */
+.reveal,
+.reveal-up {
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(20px);
   transition:
-    opacity 220ms ease-out,
-    transform 220ms ease-out;
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
 
   &.is-visible {
     opacity: 1;
     transform: none;
   }
+}
+
+.reveal-in {
+  opacity: 0;
+  transition: opacity var(--dur-base) var(--ease-out);
+
+  &.is-visible {
+    opacity: 1;
+  }
+}
+
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.94);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+
+  &.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-24px);
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+
+  &.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(24px);
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+
+  &.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// Stagger: each child of a `.reveal-stagger` container declares its own
+// position via the inline `--i` custom property (set from JSX, e.g.
+// `style={{ '--i': index }}`); the delay is computed once here rather than
+// as N separate inline `transition-delay` values.
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+  transition-delay: calc(var(--i, 0) * 70ms);
+}
+
+.reveal-stagger.is-visible > * {
+  opacity: 1;
+  transform: none;
 }
