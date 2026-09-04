@@ -33,3 +33,130 @@ export interface AuditLogEntryDto {
   actorName: string | null;
   createdAt: string;
 }
+
+/**
+ * Phase 8's "simple" admin CRUD modules (doc07 §3) — every admin CRUD
+ * endpoint here returns the Prisma row as-is (`createAdminCrudController`'s
+ * own doc), so these interfaces describe exactly that JSON shape: a
+ * `DateTime` column serialises as an ISO string, never a `Date` (it crossed
+ * `JSON.stringify` on the way over the wire), and a field the repository's
+ * own `ADMIN_INCLUDE` doesn't select simply isn't here at all.
+ */
+export interface TechnologyRow {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string | null;
+  category: string | null;
+  websiteUrl: string | null;
+  displayOrder: number;
+  createdAt: string;
+}
+
+export interface SkillCategoryRow {
+  id: number;
+  name: string;
+  slug: string;
+  icon: string | null;
+  displayOrder: number;
+  visible: boolean;
+}
+
+export interface SkillRow {
+  id: number;
+  categoryId: number;
+  name: string;
+  icon: string | null;
+  description: string | null;
+  level: string;
+  displayOrder: number;
+  visible: boolean;
+}
+
+export interface CertificationRow {
+  id: number;
+  name: string;
+  issuer: string;
+  description: string | null;
+  certificateMediaId: number | null;
+  credentialUrl: string | null;
+  issueDate: string | null;
+  expirationDate: string | null;
+  displayOrder: number;
+  visible: boolean;
+}
+
+export interface ExperienceAchievementRow {
+  id: number;
+  experienceId: number;
+  text: string;
+  displayOrder: number;
+}
+
+export interface ExperienceTechnologyRow {
+  experienceId: number;
+  technologyId: number;
+  technology: TechnologyRow;
+}
+
+export interface ExperienceRow {
+  id: number;
+  position: string;
+  organization: string;
+  location: string | null;
+  description: string | null;
+  startDate: string;
+  endDate: string | null;
+  isCurrent: boolean;
+  displayOrder: number;
+  visible: boolean;
+  achievements: ExperienceAchievementRow[];
+  technologies: ExperienceTechnologyRow[];
+}
+
+export interface EducationRow {
+  id: number;
+  institution: string;
+  degree: string;
+  field: string | null;
+  description: string | null;
+  startDate: string;
+  endDate: string | null;
+  displayOrder: number;
+  visible: boolean;
+}
+
+export interface TimelineEntryRow {
+  id: number;
+  entryDate: string;
+  yearLabel: string | null;
+  title: string;
+  description: string | null;
+  category: string | null;
+  displayOrder: number;
+  visible: boolean;
+}
+
+export interface SocialLinkRow {
+  id: number;
+  platform: string;
+  label: string | null;
+  url: string;
+  icon: string | null;
+  displayOrder: number;
+  enabled: boolean;
+}
+
+export interface TagRow {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface ArticleCategoryRow {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  displayOrder: number;
+}
