@@ -96,8 +96,17 @@ export const authLoginByEmailLimiter = createRateLimiter({
 /** `auth:refresh` — docs/architecture/09 §4: 30 requests / 15 minutes / IP. */
 export const authRefreshLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, limit: 30 });
 
-// `admin` (600/15min per authenticated user) is not created yet — no admin
-// content route exists to mount it on until Phase 8. Adding it now would be
-// untested, unmounted code (§50: do not build ahead of need).
+/** `search` — docs/architecture/09 §4: 30 / minute / IP. FTS queries are the most expensive public read. */
+export const searchLimiter = createRateLimiter({ windowMs: 60 * 1000, limit: 30 });
+
+/** `contact` — docs/architecture/09 §4: 3 / hour / IP. The 10/day GLOBAL cap is a DB count in `contactService.ts`, not a per-key bucket this factory can express. */
+export const contactLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, limit: 3 });
+
+/** `analytics` — docs/architecture/09 §4: 60 / minute / IP. Cheap endpoint, still capped. */
+export const analyticsLimiter = createRateLimiter({ windowMs: 60 * 1000, limit: 60 });
+
+// `upload` (20/hour) and `admin` (600/15min per user) are not created yet —
+// no route exists to mount either on until Phases 8–9. Adding them now
+// would be untested, unmounted code (§50: do not build ahead of need).
 
 export { createRateLimiter };

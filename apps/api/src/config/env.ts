@@ -104,6 +104,17 @@ export const envSchema = z
      * (docs/architecture/04 §1).
      */
     COOKIE_DOMAIN: z.string().min(1).default('.local.eslamramzy.dev'),
+
+    /**
+     * Gates the Swagger UI at `/api/v1/docs` (docs/architecture/03 §8) —
+     * disabled by default, and behind admin auth when enabled, per that
+     * section: exposing the full API surface (including admin routes) is
+     * reconnaissance information an attacker should not get for free.
+     */
+    ENABLE_API_DOCS: z
+      .enum(['true', 'false'])
+      .default('false')
+      .transform((value) => value === 'true'),
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV !== 'production') return;

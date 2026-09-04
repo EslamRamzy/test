@@ -17,6 +17,9 @@ export const idSchema = z.coerce.number().int().positive();
 
 export const idParamSchema = z.object({ id: idSchema });
 
+/** Public detail-route param — every public read addresses content by slug, never id (docs/architecture/03 §2). */
+export const slugParamSchema = z.object({ slug: slugSchema });
+
 /**
  * Any URL that will end up in an `href` or `src`.
  *

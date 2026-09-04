@@ -10,7 +10,19 @@ import { permissionsPolicy } from './middleware/securityHeaders.js';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { authRouter } from './routes/auth.routes.js';
+import { docsRouter } from './routes/docs.routes.js';
 import { healthRouter } from './routes/health.routes.js';
+import { analyticsRouter } from './routes/public/analytics.routes.js';
+import { articlesRouter } from './routes/public/articles.routes.js';
+import { contactRouter } from './routes/public/contact.routes.js';
+import { contentRouter } from './routes/public/content.routes.js';
+import { homeRouter } from './routes/public/home.routes.js';
+import { profileRouter } from './routes/public/profile.routes.js';
+import { projectsRouter } from './routes/public/projects.routes.js';
+import { searchRouter } from './routes/public/search.routes.js';
+import { securityRouter } from './routes/public/security.routes.js';
+import { sitemapRouter } from './routes/public/sitemap.routes.js';
+import { statsRouter } from './routes/public/stats.routes.js';
 
 /**
  * Builds the Express application without binding a port, so integration tests
@@ -75,6 +87,23 @@ export function createApp(): Express {
 
   app.use('/api/v1', healthRouter);
   app.use('/api/v1/auth', authRouter);
+
+  // Public API (docs/architecture/03 §3, Phase 5). `contentRouter` defines
+  // its own sub-paths (/technologies, /skills, /certifications, /experience,
+  // /education, /timeline, /social-links, /tags) and mounts at the bare
+  // `/api/v1` prefix for that reason — see routes/public/content.routes.ts.
+  app.use('/api/v1', contentRouter);
+  app.use('/api/v1/profile', profileRouter);
+  app.use('/api/v1/stats', statsRouter);
+  app.use('/api/v1/home', homeRouter);
+  app.use('/api/v1/projects', projectsRouter);
+  app.use('/api/v1/articles', articlesRouter);
+  app.use('/api/v1/security', securityRouter);
+  app.use('/api/v1/search', searchRouter);
+  app.use('/api/v1/sitemap-data', sitemapRouter);
+  app.use('/api/v1/contact', contactRouter);
+  app.use('/api/v1/analytics', analyticsRouter);
+  app.use('/api/v1/docs', docsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

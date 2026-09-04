@@ -1,10 +1,11 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 4 of 16 complete** — authentication (Argon2id, JWT access cookie, rotating opaque
-> refresh with reuse detection, lockout) and authorization (RBAC, `authenticate`/`authorize`,
-> append-only audit trail) are implemented and tested against a real Express app and database. See
-> the [Phase 4 report](phases/phase-04-report.md). Phase 5 (Public API) is unblocked. No open
-> decisions remain that block current work — see
+> **Status: Phase 5 of 16 complete** — every public read endpoint (projects, articles, security
+> research, skills, technologies, certifications, experience, education, timeline, social links,
+> search, sitemap data), the `/home` and `/stats` aggregates, and the contact/analytics write
+> endpoints are implemented, draft-isolation tested, and documented in a generated
+> `docs/api/openapi.json`. See the [Phase 5 report](phases/phase-05-report.md). Phase 6 (Public
+> website) is unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
 > next phase.

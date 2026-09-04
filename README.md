@@ -3,13 +3,15 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 4 of 16 — authentication + authorization.**
-> Database (Phase 2), backend foundation (Phase 3), and now full auth — Argon2id, JWT access cookie,
-> rotating opaque refresh tokens with reuse detection, account lockout, RBAC, signed double-submit
-> CSRF, and an append-only audit trail (Phase 4) — are implemented and tested. See
-> [`docs/`](docs/README.md) and the [Phase 4 report](docs/phases/phase-04-report.md). There are no
-> public pages, no admin dashboard UI, and no business content routes yet — those arrive in Phases
-> 5–13 per the [implementation plan](docs/architecture/11-implementation-plan.md).
+> **Status: Phase 5 of 16 — public API.**
+> Database (Phase 2), backend foundation (Phase 3), auth (Phase 4), and now the full public REST API
+> — projects, articles, security research, skills, technologies, certifications, experience,
+> education, timeline, social links, search, sitemap data, the `/home` and `/stats` aggregates, and
+> the contact/analytics endpoints (Phase 5) — are implemented, draft-isolation tested, and documented
+> in a generated `docs/api/openapi.json`. See [`docs/`](docs/README.md) and the
+> [Phase 5 report](docs/phases/phase-05-report.md). There are no public pages, no admin dashboard UI,
+> and no admin content routes yet — those arrive in Phases 6–13 per the
+> [implementation plan](docs/architecture/11-implementation-plan.md).
 
 ---
 
