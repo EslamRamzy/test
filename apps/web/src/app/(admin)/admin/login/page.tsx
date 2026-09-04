@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: 'Sign in' };
  */
 export default function AdminLoginPage(): React.JSX.Element {
   return (
-    <div className="admin-auth">
+    <main className="admin-auth">
       <div className="admin-auth__card">
         <div className="admin-auth__brand">
           <span className="admin-auth__brand-dot" aria-hidden="true" />
@@ -23,6 +23,6 @@ export default function AdminLoginPage(): React.JSX.Element {
           <LoginForm />
         </Suspense>
       </div>
-    </div>
+    </main>
   );
 }

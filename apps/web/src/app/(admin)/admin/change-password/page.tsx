@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: 'Change password' };
 
 export default function AdminChangePasswordPage(): React.JSX.Element {
   return (
-    <div className="admin-auth">
+    <main className="admin-auth">
       <div className="admin-auth__card">
         <div className="admin-auth__brand">
           <span className="admin-auth__brand-dot" aria-hidden="true" />
@@ -17,6 +17,6 @@ export default function AdminChangePasswordPage(): React.JSX.Element {
         </p>
         <ChangePasswordForm />
       </div>
-    </div>
+    </main>
   );
 }

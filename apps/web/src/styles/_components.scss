@@ -1529,3 +1529,106 @@ $admin-topbar-height: 56px;
   z-index: 1060;
   padding: var(--space-4);
 }
+
+// Dashboard (doc 07 §3) — one stat card per overview counter, a simple
+// list for Recent Activity. Nothing here is reused by a future module's
+// own List screen (that's `<DataTable>`, Phase 8); this is deliberately
+// just enough for the one page that needs it today.
+.admin-stat-card {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.admin-stat-card--loading {
+  height: 120px;
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 25%,
+    var(--color-border) 50%,
+    var(--color-surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: adminStatCardShimmer 1.4s ease-in-out infinite;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+@keyframes adminStatCardShimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-stat-card--loading {
+    animation: none;
+  }
+}
+
+.admin-stat-card__icon {
+  font-size: 1.3rem;
+  color: var(--color-accent-2);
+}
+
+.admin-stat-card__value {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.admin-stat-card__label {
+  margin-top: var(--space-1);
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+}
+
+.admin-activity-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.admin-activity-list__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  font-size: 0.9rem;
+
+  & + & {
+    border-top: 1px solid var(--color-border);
+  }
+}
+
+.admin-activity-list__actor {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.admin-activity-list__action {
+  flex: 1;
+  color: var(--color-text-muted);
+}
+
+.admin-activity-list__time {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  // `--color-text-faint` measured below 4.5:1 against this list's background
+  // in both themes (real axe run, not eyeballed) — `--color-text-muted` is
+  // the same token every other secondary label on this page already uses
+  // (breadcrumb, sidebar "Soon" pill text) and passes.
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
