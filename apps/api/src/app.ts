@@ -11,6 +11,7 @@ import { permissionsPolicy } from './middleware/securityHeaders.js';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { articleCategoriesRouter } from './routes/admin/articleCategories.routes.js';
+import { articlesRouter as adminArticlesRouter } from './routes/admin/articles.routes.js';
 import { certificationsRouter } from './routes/admin/certifications.routes.js';
 import { educationRouter } from './routes/admin/education.routes.js';
 import { experienceRouter } from './routes/admin/experience.routes.js';
@@ -132,6 +133,7 @@ export function createApp(): Express {
   app.use('/api/v1/admin/social-links', socialLinksRouter);
   app.use('/api/v1/admin/tags', tagsRouter);
   app.use('/api/v1/admin/article-categories', articleCategoriesRouter);
+  app.use('/api/v1/admin/articles', adminArticlesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
