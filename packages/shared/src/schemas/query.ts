@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { RESEARCH_CATEGORIES } from '../constants/content.js';
 import { paginationQuerySchema, slugSchema } from './primitives.js';
 
 /**
@@ -99,3 +100,11 @@ export const skillListQuerySchema = adminListQuerySchema
   })
   .strict();
 export type SkillListQuery = z.infer<typeof skillListQuerySchema>;
+
+/** `GET /admin/security-research` — same reasoning as `skillListQuerySchema`'s own: a filter no other admin list resource has. */
+export const researchAdminListQuerySchema = adminListQuerySchema
+  .extend({
+    category: z.enum(RESEARCH_CATEGORIES).optional(),
+  })
+  .strict();
+export type ResearchAdminListQuery = z.infer<typeof researchAdminListQuerySchema>;

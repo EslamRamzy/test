@@ -16,6 +16,7 @@ import { certificationsRouter } from './routes/admin/certifications.routes.js';
 import { educationRouter } from './routes/admin/education.routes.js';
 import { experienceRouter } from './routes/admin/experience.routes.js';
 import { overviewRouter } from './routes/admin/overview.routes.js';
+import { securityResearchRouter } from './routes/admin/securityResearch.routes.js';
 import { skillCategoriesRouter } from './routes/admin/skillCategories.routes.js';
 import { skillsRouter } from './routes/admin/skills.routes.js';
 import { socialLinksRouter } from './routes/admin/socialLinks.routes.js';
@@ -134,6 +135,7 @@ export function createApp(): Express {
   app.use('/api/v1/admin/tags', tagsRouter);
   app.use('/api/v1/admin/article-categories', articleCategoriesRouter);
   app.use('/api/v1/admin/articles', adminArticlesRouter);
+  app.use('/api/v1/admin/security-research', securityResearchRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

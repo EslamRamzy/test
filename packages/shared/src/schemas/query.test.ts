@@ -3,6 +3,7 @@ import {
   adminListQuerySchema,
   articleListQuerySchema,
   projectListQuerySchema,
+  researchAdminListQuerySchema,
   searchQuerySchema,
   securityResearchListQuerySchema,
   skillListQuerySchema,
@@ -113,6 +114,22 @@ describe('skillListQuerySchema', () => {
     expect(skillListQuerySchema.parse({ q: 'rust', sort: 'name' })).toMatchObject({
       q: 'rust',
       sort: 'name',
+    });
+  });
+});
+
+describe('researchAdminListQuerySchema', () => {
+  it('accepts a valid category filter', () => {
+    expect(researchAdminListQuerySchema.parse({ category: 'WRITEUP' }).category).toBe('WRITEUP');
+  });
+
+  it('rejects a category outside RESEARCH_CATEGORIES', () => {
+    expect(() => researchAdminListQuerySchema.parse({ category: 'BOGUS' })).toThrow();
+  });
+
+  it('still accepts everything adminListQuerySchema does', () => {
+    expect(researchAdminListQuerySchema.parse({ status: 'ARCHIVED' })).toMatchObject({
+      status: 'ARCHIVED',
     });
   });
 });
