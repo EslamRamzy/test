@@ -1,25 +1,11 @@
-import { mkdirSync, rmSync } from 'node:fs';
-import { dirname } from 'node:path';
 import request from 'supertest';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
-import { applyMigrations } from './helpers/testDb.js';
 
-// Must match vitest.config.ts's `test.env.DATABASE_URL` (without the `file:`
-// prefix) — see that file for why config/prisma.ts's singleton cannot be
-// pointed at a per-test file the usual way.
-const DB_PATH = './.tmp/vitest-app.db';
-
+// The shared database this app instance reads from (matching
+// vitest.config.ts's `test.env.DATABASE_URL`) is created and migrated once
+// by tests/globalSetup.ts, not by this file — see that file's header.
 const app = createApp();
-
-beforeAll(() => {
-  mkdirSync(dirname(DB_PATH), { recursive: true });
-  applyMigrations(DB_PATH);
-});
-
-afterAll(() => {
-  rmSync(dirname(DB_PATH), { recursive: true, force: true });
-});
 
 describe('health endpoints', () => {
   it('reports liveness', async () => {

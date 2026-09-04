@@ -1,5 +1,7 @@
 import rateLimit from 'express-rate-limit';
 import type { Request, Response } from 'express';
+import * as auditLogRepository from '../repositories/auditLogRepository.js';
+import { hashIp } from '../utils/hashIp.js';
 
 /**
  * Rate limiting (docs/architecture/09 §4). An in-memory store is correct for
@@ -19,28 +21,83 @@ import type { Request, Response } from 'express';
  * bucket with nothing route-specific to attach to yet, so it is exported
  * ready to mount in Phase 5.
  */
-function createRateLimiter(options: { windowMs: number; limit: number }) {
-  const { windowMs, limit } = options;
+function createRateLimiter(options: {
+  windowMs: number;
+  limit: number;
+  keyGenerator?: (req: Request) => string;
+  /**
+   * When set, a 429 from this limiter also writes an audit entry (docs/
+   * architecture/09 §4: "429 responses ... are audited when they hit an
+   * auth bucket"). Fire-and-forget — a failure to write the audit row must
+   * never be why a client's 429 response is delayed or itself fails.
+   */
+  auditAction?: string;
+}) {
+  const { windowMs, limit, keyGenerator, auditAction } = options;
 
   return rateLimit({
     windowMs,
     limit,
     standardHeaders: 'draft-7',
     legacyHeaders: false,
+    ...(keyGenerator ? { keyGenerator } : {}),
     // express-rate-limit's own `standardHeaders` mode does not set
     // `Retry-After` reliably across versions; set it explicitly so a client
     // can always act on it regardless of that detail.
-    handler: (_req: Request, res: Response) => {
+    handler: (req: Request, res: Response) => {
       res.setHeader('Retry-After', Math.ceil(windowMs / 1000));
       res.status(429).json({
         success: false,
         error: { code: 'RATE_LIMITED', message: 'Too many requests' },
       });
+
+      if (auditAction) {
+        const userAgent = req.get('user-agent') ?? undefined;
+        void auditLogRepository.record({
+          userId: null,
+          action: auditAction,
+          ipHash: hashIp(req.ip ?? 'unknown', userAgent),
+          ...(userAgent !== undefined ? { userAgent } : {}),
+        });
+      }
     },
   });
 }
 
 /** `public:read` — docs/architecture/09 §4: 300 requests / 15 minutes / IP. */
 export const publicReadLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, limit: 300 });
+
+/**
+ * `auth:login` is a DUAL bucket (docs/architecture/09 §4, docs/architecture/04
+ * §2): 5 requests / 15 minutes per IP AND, independently, 5 / 15 minutes per
+ * attempted email. Both must be mounted on the login route — the IP bucket
+ * alone lets a distributed attack spray one account from many IPs; the email
+ * bucket alone lets one IP spray many accounts. Keyed off `req.body.email`,
+ * which by the time this runs has already been through the login schema's
+ * `emailSchema` (trimmed, lower-cased) — see routes/auth.routes.ts for the
+ * required middleware order.
+ */
+export const authLoginByIpLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  auditAction: 'LOGIN_RATE_LIMITED',
+});
+
+export const authLoginByEmailLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  auditAction: 'LOGIN_RATE_LIMITED',
+  keyGenerator: (req: Request) => {
+    const body = req.body as { email?: unknown } | undefined;
+    return typeof body?.email === 'string' ? body.email : 'unknown';
+  },
+});
+
+/** `auth:refresh` — docs/architecture/09 §4: 30 requests / 15 minutes / IP. */
+export const authRefreshLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, limit: 30 });
+
+// `admin` (600/15min per authenticated user) is not created yet — no admin
+// content route exists to mount it on until Phase 8. Adding it now would be
+// untested, unmounted code (§50: do not build ahead of need).
 
 export { createRateLimiter };

@@ -3,12 +3,13 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 3 of 16 — backend foundation.**
-> Database (Phase 2) plus error handling, structured logging, rate limiting, request validation and
-> the response envelope (Phase 3) are implemented and tested. See [`docs/`](docs/README.md) and the
-> [Phase 3 report](docs/phases/phase-03-report.md). There are no public pages, no admin dashboard,
-> and no business API routes yet — those arrive in Phases 4–13 per the
-> [implementation plan](docs/architecture/11-implementation-plan.md).
+> **Status: Phase 4 of 16 — authentication + authorization.**
+> Database (Phase 2), backend foundation (Phase 3), and now full auth — Argon2id, JWT access cookie,
+> rotating opaque refresh tokens with reuse detection, account lockout, RBAC, signed double-submit
+> CSRF, and an append-only audit trail (Phase 4) — are implemented and tested. See
+> [`docs/`](docs/README.md) and the [Phase 4 report](docs/phases/phase-04-report.md). There are no
+> public pages, no admin dashboard UI, and no business content routes yet — those arrive in Phases
+> 5–13 per the [implementation plan](docs/architecture/11-implementation-plan.md).
 
 ---
 
@@ -38,7 +39,7 @@ full consequences — including why cookies use the `__Secure-` prefix rather th
 | Frontend | Next.js 16 (App Router), React 19, TypeScript, Bootstrap 5 (SCSS source) |
 | Backend | Node.js 22, Express 5, TypeScript |
 | Database | SQLite (WAL) via Prisma 7 + `@prisma/adapter-better-sqlite3` |
-| Auth | JWT access cookie + rotating opaque refresh tokens, Argon2id — *Phase 4* (password hashing itself lands in Phase 2, for the bootstrap admin) |
+| Auth | JWT access cookie + rotating opaque refresh tokens, Argon2id, RBAC, signed CSRF — *implemented, Phase 4* |
 | Testing | Vitest, Supertest, Testing Library, Playwright |
 | Tooling | npm workspaces, ESLint (flat), Prettier |
 

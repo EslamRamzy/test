@@ -17,7 +17,9 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:bootstrap": "tsx prisma/bootstrap.ts",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "admin:reset-password": "tsx scripts/admin-reset-password.ts",
+    "admin:unlock": "tsx scripts/admin-unlock.ts"
   },
   "dependencies": {
     "@portfolio/shared": "*",
@@ -25,17 +27,21 @@
     "@prisma/client": "^7.10.0",
     "argon2": "^0.45.1",
     "better-sqlite3": "^13.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.2.0",
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
     "zod": "^4.0.0"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.0.0",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "^5.0.0",

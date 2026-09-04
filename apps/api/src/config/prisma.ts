@@ -1,5 +1,6 @@
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '../../generated/prisma/client.js';
+import type { Prisma } from '../../generated/prisma/client.js';
 import { env } from './env.js';
 
 /**
@@ -33,6 +34,17 @@ export const prisma = new PrismaClient({
   // still surface through the thrown exceptions the caller already handles.
   log: env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error'],
 });
+
+/**
+ * A repository function that must be callable both standalone (against the
+ * shared singleton) and from inside `prisma.$transaction(async (tx) => ...)`
+ * (docs/architecture/05 §7 — audit coupling: a mutation and its audit-log
+ * write commit or roll back together) takes this as its client parameter,
+ * defaulted to `prisma`. `Prisma.TransactionClient` is the same shape minus
+ * the handful of methods (`$transaction`, `$connect`, ...) that are not
+ * valid to call on a client already inside one.
+ */
+export type PrismaClientOrTx = PrismaClient | Prisma.TransactionClient;
 
 let pragmasApplied = false;
 

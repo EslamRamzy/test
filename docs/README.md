@@ -1,10 +1,13 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 3 of 16 complete** — error handling, structured logging, rate limiting, request
-> validation and the response envelope are all implemented and tested against a real Express app.
-> Phase 4 (Authentication + Authorization — the highest-risk phase) is unblocked. No open decisions
-> remain that block current work — see [12](architecture/12-decisions-pending-approval.md) for the
-> small number still open, none of which gate the next phase.
+> **Status: Phase 4 of 16 complete** — authentication (Argon2id, JWT access cookie, rotating opaque
+> refresh with reuse detection, lockout) and authorization (RBAC, `authenticate`/`authorize`,
+> append-only audit trail) are implemented and tested against a real Express app and database. See
+> the [Phase 4 report](phases/phase-04-report.md). Phase 5 (Public API) is unblocked. No open
+> decisions remain that block current work — see
+> [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
+> two-factor authentication — proposed, never approved, not implemented), none of which gate the
+> next phase.
 
 ## Documents
 

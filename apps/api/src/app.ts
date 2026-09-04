@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
 import type { Express } from 'express';
@@ -8,19 +9,25 @@ import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { permissionsPolicy } from './middleware/securityHeaders.js';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import { authRouter } from './routes/auth.routes.js';
 import { healthRouter } from './routes/health.routes.js';
 
 /**
  * Builds the Express application without binding a port, so integration tests
  * can drive it through supertest with no sockets involved (docs/architecture/10 §2).
  *
- * Middleware order matters and follows docs/architecture/03 §6 exactly, minus
- * the pieces that don't exist until Phase 4 (cookies, CSRF, authenticate,
- * authorize) and Phase 5 (`validate`, which is per-route and mounted by the
- * routes that need it, not globally here):
+ * Middleware order matters and follows docs/architecture/03 §6:
  *
  *   requestId → requestLogger (pino-http) → helmet → permissionsPolicy →
- *   cors → express.json(limit) → routes → notFoundHandler → errorHandler
+ *   cors → express.json(limit) → cookieParser → routes → notFoundHandler →
+ *   errorHandler
+ *
+ * `cookieParser` is mounted globally (not per-route) because both auth
+ * cookie readers (lib/cookies.ts) and every route's `authenticate`
+ * middleware depend on `req.cookies` already being populated — Phase 4
+ * introduced the first routes that need it. `validate`, `csrfProtection`,
+ * `authenticate` and `authorize` remain per-route, mounted by the routers
+ * that need them, not globally here — see routes/auth.routes.ts.
  */
 export function createApp(): Express {
   const app = express();
@@ -64,8 +71,10 @@ export function createApp(): Express {
 
   // Body limit is applied before parsing, not after.
   app.use(express.json({ limit: '1mb' }));
+  app.use(cookieParser());
 
   app.use('/api/v1', healthRouter);
+  app.use('/api/v1/auth', authRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

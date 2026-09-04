@@ -15,8 +15,8 @@ Estimates assume focused sessions and are for sequencing, not commitments.
 | 1 | Project setup | 1 d | **done** — [report](../phases/phase-01-report.md) |
 | 2 | Database + migrations | 2 d | 1 · **done** — [report](../phases/phase-02-report.md) |
 | 3 | Backend foundation | 2 d | 2 · **done** — [report](../phases/phase-03-report.md) |
-| 4 | Authentication + Authorization | 2 d | 3 · **unblocked** |
-| 5 | Public API | 3 d | 4 |
+| 4 | Authentication + Authorization | 2 d | 3 · **done** — [report](../phases/phase-04-report.md) |
+| 5 | Public API | 3 d | 4 · **unblocked** |
 | 6 | Public website | 5 d | 5 |
 | 7 | Admin dashboard shell | 3 d | 4 |
 | 8 | Content management (13 modules) | 6 d | 7 |
