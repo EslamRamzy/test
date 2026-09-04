@@ -60,6 +60,21 @@ export const envSchema = z
       .pipe(z.array(z.string()).min(1, 'At least one allowed origin is required')),
 
     /**
+     * The public site's own origin (the Next.js app), reachable from the
+     * API — used ONLY as the base URL for the on-demand revalidation POST
+     * described in docs/architecture/01 §4.2 and 07 §... (publish ->
+     * `POST {PUBLIC_SITE_URL}/api/revalidate`). Note this is the SAME
+     * variable name the web app itself reads for its own canonical
+     * URLs/sitemap/OG tags (`apps/web/src/lib/config.ts`) — `docker-compose.yml`
+     * passes an identical value to both containers rather than inventing a
+     * second, container-internal address for this one direction (unlike
+     * `API_INTERNAL_URL` on the web side): revalidation is low-frequency and
+     * not latency-sensitive, so the extra hop out through Caddy and back is
+     * an acceptable, deliberate trade for not maintaining a second URL.
+     */
+    PUBLIC_SITE_URL: z.string().url().default('https://local.eslamramzy.dev'),
+
+    /**
      * SQLite file path, as a Prisma-style `file:` URL. Consumed directly by
      * @prisma/adapter-better-sqlite3 in config/prisma.ts — see that file for
      * why a driver adapter is required at all in Prisma 7, and why the WAL/
@@ -93,6 +108,16 @@ export const envSchema = z
      */
     IP_HASH_SALT: z.string().min(32, 'IP_HASH_SALT must be at least 32 characters'),
 
+    /**
+     * Shared secret for the on-demand revalidation POST to the web app's
+     * `/api/revalidate` Route Handler (docs/architecture/01 §4.2, 06 line
+     * 53) — sent as a header/body value the route handler compares against
+     * its own copy of this same secret. Both containers get the identical
+     * value from `docker-compose.yml`. `lib/revalidate.ts` is the one place
+     * that reads this.
+     */
+    REVALIDATE_SECRET: z.string().min(32, 'REVALIDATE_SECRET must be at least 32 characters'),
+
     JWT_ACCESS_TTL: z.string().min(1).default('15m'),
     JWT_REFRESH_TTL: z.string().min(1).default('7d'),
 
@@ -119,7 +144,12 @@ export const envSchema = z
   .superRefine((value, ctx) => {
     if (value.NODE_ENV !== 'production') return;
 
-    for (const field of ['JWT_SECRET', 'CSRF_SECRET', 'IP_HASH_SALT'] as const) {
+    for (const field of [
+      'JWT_SECRET',
+      'CSRF_SECRET',
+      'IP_HASH_SALT',
+      'REVALIDATE_SECRET',
+    ] as const) {
       if (isPlaceholderSecret(value[field])) {
         ctx.addIssue({
           code: 'custom',

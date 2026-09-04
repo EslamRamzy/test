@@ -36,12 +36,21 @@ export default defineConfig({
     // tests/helpers/testDb.ts's createTestDatabase() regardless of this.
     env: {
       DATABASE_URL: 'file:./.tmp/vitest-app.db',
+      // Pinned for the same reason as the secrets below: a developer's own
+      // apps/api/.env (gitignored, used for local manual/browser testing)
+      // may set this to something else entirely (e.g. http://localhost:3000
+      // for a local Next.js dev server) — Node's loadEnvFile() never
+      // overrides a variable already present in process.env, so fixing it
+      // here is what keeps the test suite's expectations independent of
+      // whatever a given machine's .env happens to contain.
+      PUBLIC_SITE_URL: 'https://local.eslamramzy.dev',
       // Fixed, obviously-fake test secrets — 32+ chars to satisfy env.ts's
       // own length check, applied globally so no test file needs to stub
       // them individually. Never used outside this test run.
       JWT_SECRET: 'test-jwt-secret-value-not-for-real-use-000000',
       CSRF_SECRET: 'test-csrf-secret-value-not-for-real-use-00000',
       IP_HASH_SALT: 'test-ip-hash-salt-value-not-for-real-use-0000',
+      REVALIDATE_SECRET: 'test-revalidate-secret-value-not-for-real-use',
       COOKIE_DOMAIN: '.local.eslamramzy.test',
     },
     coverage: {

@@ -8,6 +8,7 @@ function baseEnv(overrides: Record<string, string> = {}) {
     JWT_SECRET: VALID_SECRET,
     CSRF_SECRET: VALID_SECRET,
     IP_HASH_SALT: VALID_SECRET,
+    REVALIDATE_SECRET: VALID_SECRET,
     ...overrides,
   };
 }
@@ -37,6 +38,35 @@ describe('envSchema', () => {
 
   it('rejects a missing IP_HASH_SALT', () => {
     const result = envSchema.safeParse({ JWT_SECRET: VALID_SECRET, CSRF_SECRET: VALID_SECRET });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a missing REVALIDATE_SECRET', () => {
+    const result = envSchema.safeParse({
+      JWT_SECRET: VALID_SECRET,
+      CSRF_SECRET: VALID_SECRET,
+      IP_HASH_SALT: VALID_SECRET,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects a placeholder REVALIDATE_SECRET in production', () => {
+    const result = envSchema.safeParse(
+      baseEnv({ NODE_ENV: 'production', REVALIDATE_SECRET: 'secret'.repeat(6) }),
+    );
+    expect(result.success).toBe(false);
+  });
+
+  it('applies the default PUBLIC_SITE_URL', () => {
+    const result = envSchema.safeParse(baseEnv());
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.PUBLIC_SITE_URL).toBe('https://local.eslamramzy.dev');
+    }
+  });
+
+  it('rejects a non-URL PUBLIC_SITE_URL', () => {
+    const result = envSchema.safeParse(baseEnv({ PUBLIC_SITE_URL: 'not-a-url' }));
     expect(result.success).toBe(false);
   });
 
