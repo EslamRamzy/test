@@ -1,7 +1,7 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: PHASE 0 — Architecture & Design. No implementation code has been written yet.**
-> This package is submitted for review. Implementation starts only after approval.
+> **Status: Phase 1 of 16 complete** — monorepo, tooling and CI are in place.
+> Phase 2 (database and migrations) is blocked on decision **D5**.
 
 ## Documents
 
@@ -20,6 +20,12 @@
 | 10 | [Testing Strategy](architecture/10-testing-strategy.md) | Test pyramid, tooling, coverage targets, security testing |
 | 11 | [Implementation Plan](architecture/11-implementation-plan.md) | 16 phases, deliverables, exit criteria |
 | 12 | [Decisions](architecture/12-decisions-pending-approval.md) | Decisions taken (D1, D2, D3, D8) + **what is still open** |
+
+## Phase reports
+
+| Phase | Report |
+|---|---|
+| 1 | [Project setup](phases/phase-01-report.md) |
 
 ## How to review
 

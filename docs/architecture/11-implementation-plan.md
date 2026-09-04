@@ -11,9 +11,9 @@ Estimates assume focused sessions and are for sequencing, not commitments.
 
 | Phase | Name | Est. | Depends on |
 |---|---|---|---|
-| 0 | Requirements + Architecture | — | **done — awaiting your approval** |
-| 1 | Project setup | 1 d | Phase 0 approved |
-| 2 | Database + migrations | 2 d | 1 |
+| 0 | Requirements + Architecture | — | **done — approved** |
+| 1 | Project setup | 1 d | **done** — [report](../phases/phase-01-report.md) |
+| 2 | Database + migrations | 2 d | 1 · **blocked on D5** |
 | 3 | Backend foundation | 2 d | 2 |
 | 4 | Authentication + Authorization | 2 d | 3 |
 | 5 | Public API | 3 d | 4 |
