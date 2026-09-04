@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isoDateAsDate } from './primitives.js';
 
 /**
  * `experiences` (doc 07 §3: "achievements repeater... `is_current` toggle").
@@ -18,8 +19,8 @@ export const experienceCreateSchema = z
     organization: z.string().trim().min(1).max(150),
     location: z.string().trim().max(150).optional(),
     description: z.string().trim().max(5000).optional(),
-    startDate: z.iso.date(),
-    endDate: z.iso.date().optional(),
+    startDate: isoDateAsDate,
+    endDate: isoDateAsDate.optional(),
     isCurrent: z.boolean().optional(),
     visible: z.boolean().optional(),
     achievements: z.array(z.string().trim().min(1).max(300)).max(50).optional(),

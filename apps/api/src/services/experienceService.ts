@@ -1,5 +1,7 @@
 import type { ExperienceDto } from '@portfolio/shared';
+import * as experienceRepository from '../repositories/experienceRepository.js';
 import { findVisible } from '../repositories/experienceRepository.js';
+import { createAdminCrudService } from './adminCrudFactory.js';
 
 export async function listExperience(): Promise<ExperienceDto[]> {
   const rows = await findVisible();
@@ -23,3 +25,18 @@ export async function listExperience(): Promise<ExperienceDto[]> {
     })),
   }));
 }
+
+// --- Admin CRUD (docs/architecture/03 §5) -----------------------------------
+
+type ExperienceRow = NonNullable<Awaited<ReturnType<typeof experienceRepository.findById>>>;
+
+export const experienceAdminService = createAdminCrudService<
+  ExperienceRow,
+  Parameters<typeof experienceRepository.create>[0],
+  Parameters<typeof experienceRepository.update>[1],
+  experienceRepository.ExperienceListParams
+>({
+  entityName: 'EXPERIENCE',
+  repository: experienceRepository,
+  getRowId: (row) => row.id,
+});

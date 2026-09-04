@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { slugSchema } from './primitives.js';
+import { isoDatetimeAsDate, slugSchema } from './primitives.js';
 
 /**
  * `articles` (doc 07 §3: "Markdown editor, cover picker, tags, category,
@@ -32,7 +32,7 @@ export const articleCreateSchema = z
     content: z.string().trim().min(1).max(100_000),
     coverMediaId: z.number().int().positive().optional(),
     categoryId: z.number().int().positive().optional(),
-    publishedAt: z.iso.datetime().optional(),
+    publishedAt: isoDatetimeAsDate.optional(),
     tagIds: z.array(z.number().int().positive()).max(50).optional(),
   })
   .strict();

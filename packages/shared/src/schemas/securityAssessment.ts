@@ -6,6 +6,7 @@ import {
   FINDING_STATUSES,
 } from '../constants/security.js';
 import { z } from 'zod';
+import { isoDatetimeAsDate } from './primitives.js';
 
 /**
  * Security assessments, the 15-test checklist, and findings — all nested
@@ -24,8 +25,8 @@ export const securityAssessmentCreateSchema = z
     summary: z.string().trim().max(5000).optional(),
     status: z.enum(ASSESSMENT_STATUSES).optional(),
     isPublic: z.boolean().optional(),
-    assessedAt: z.iso.datetime().optional(),
-    retestedAt: z.iso.datetime().optional(),
+    assessedAt: isoDatetimeAsDate.optional(),
+    retestedAt: isoDatetimeAsDate.optional(),
   })
   .strict();
 export type SecurityAssessmentCreateInput = z.infer<typeof securityAssessmentCreateSchema>;
@@ -67,8 +68,8 @@ export const securityFindingCreateSchema = z
     status: z.enum(FINDING_STATUSES).optional(),
     cweId: z.string().trim().max(20).optional(),
     isPublic: z.boolean().optional(),
-    discoveredAt: z.iso.datetime().optional(),
-    resolvedAt: z.iso.datetime().optional(),
+    discoveredAt: isoDatetimeAsDate.optional(),
+    resolvedAt: isoDatetimeAsDate.optional(),
   })
   .strict();
 export type SecurityFindingCreateInput = z.infer<typeof securityFindingCreateSchema>;

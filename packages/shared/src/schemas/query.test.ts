@@ -5,6 +5,7 @@ import {
   projectListQuerySchema,
   searchQuerySchema,
   securityResearchListQuerySchema,
+  skillListQuerySchema,
   technologyListQuerySchema,
 } from './query.js';
 
@@ -100,5 +101,18 @@ describe('adminListQuerySchema', () => {
 
   it('rejects a status outside DRAFT/PUBLISHED/ARCHIVED', () => {
     expect(() => adminListQuerySchema.parse({ status: 'DELETED' })).toThrow();
+  });
+});
+
+describe('skillListQuerySchema', () => {
+  it('coerces categoryId from a query string', () => {
+    expect(skillListQuerySchema.parse({ categoryId: '3' }).categoryId).toBe(3);
+  });
+
+  it('still accepts everything adminListQuerySchema does', () => {
+    expect(skillListQuerySchema.parse({ q: 'rust', sort: 'name' })).toMatchObject({
+      q: 'rust',
+      sort: 'name',
+    });
   });
 });

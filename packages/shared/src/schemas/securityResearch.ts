@@ -1,6 +1,6 @@
 import { RESEARCH_CATEGORIES } from '../constants/content.js';
 import { z } from 'zod';
-import { httpsUrlSchema, slugSchema } from './primitives.js';
+import { httpsUrlSchema, isoDatetimeAsDate, slugSchema } from './primitives.js';
 
 /**
  * `security-research` — same "no `status` field, no scheduler needed"
@@ -17,7 +17,7 @@ export const securityResearchCreateSchema = z
     content: z.string().trim().min(1).max(100_000),
     category: z.enum(RESEARCH_CATEGORIES),
     coverMediaId: z.number().int().positive().optional(),
-    publishedAt: z.iso.datetime().optional(),
+    publishedAt: isoDatetimeAsDate.optional(),
     tagIds: z.array(z.number().int().positive()).max(50).optional(),
     references: z
       .array(

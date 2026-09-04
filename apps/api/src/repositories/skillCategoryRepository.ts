@@ -1,4 +1,4 @@
-import type { ArticleCategoryCreateInput, ArticleCategoryUpdateInput } from '@portfolio/shared';
+import type { SkillCategoryCreateInput, SkillCategoryUpdateInput } from '@portfolio/shared';
 import { prisma } from '../config/prisma.js';
 import type { PrismaClientOrTx } from '../config/prisma.js';
 import { ConflictError } from '../errors/AppError.js';
@@ -6,44 +6,36 @@ import { stripUndefined } from '../lib/stripUndefined.js';
 import type { AdminCrudListParams } from '../services/adminCrudFactory.js';
 import { isUniqueConstraintError } from './prismaErrors.js';
 
-export function findAll() {
-  return prisma.articleCategory.findMany({ orderBy: { displayOrder: 'asc' } });
-}
+/** Admin CRUD for `skill_categories` — public reads live in `skillRepository.ts` (`findVisibleCategoriesWithSkills`), which this file does not touch. */
 
-export function findBySlug(slug: string) {
-  return prisma.articleCategory.findUnique({ where: { slug } });
-}
-
-// --- Admin CRUD (docs/architecture/03 §5) -----------------------------------
-
-export interface ArticleCategoryListParams extends AdminCrudListParams {
+export interface SkillCategoryListParams extends AdminCrudListParams {
   q?: string | undefined;
 }
 
-export async function list(params: ArticleCategoryListParams) {
+export async function list(params: SkillCategoryListParams) {
   const where = params.q ? { name: { contains: params.q } } : {};
   const [items, total] = await Promise.all([
-    prisma.articleCategory.findMany({
+    prisma.skillCategory.findMany({
       where,
-      orderBy: { displayOrder: 'asc' },
+      orderBy: [{ displayOrder: 'asc' as const }, { name: 'asc' as const }],
       skip: (params.page - 1) * params.pageSize,
       take: params.pageSize,
     }),
-    prisma.articleCategory.count({ where }),
+    prisma.skillCategory.count({ where }),
   ]);
   return { items, total };
 }
 
 export function findById(id: number, client: PrismaClientOrTx = prisma) {
-  return client.articleCategory.findUnique({ where: { id } });
+  return client.skillCategory.findUnique({ where: { id } });
 }
 
-export async function create(data: ArticleCategoryCreateInput, client: PrismaClientOrTx = prisma) {
+export async function create(data: SkillCategoryCreateInput, client: PrismaClientOrTx = prisma) {
   try {
-    return await client.articleCategory.create({ data: stripUndefined(data) });
+    return await client.skillCategory.create({ data: stripUndefined(data) });
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      throw new ConflictError('An article category with this name or slug already exists');
+      throw new ConflictError('A skill category with this name or slug already exists');
     }
     throw error;
   }
@@ -51,21 +43,21 @@ export async function create(data: ArticleCategoryCreateInput, client: PrismaCli
 
 export async function update(
   id: number,
-  data: ArticleCategoryUpdateInput,
+  data: SkillCategoryUpdateInput,
   client: PrismaClientOrTx = prisma,
 ) {
   try {
-    return await client.articleCategory.update({ where: { id }, data: stripUndefined(data) });
+    return await client.skillCategory.update({ where: { id }, data: stripUndefined(data) });
   } catch (error) {
     if (isUniqueConstraintError(error)) {
-      throw new ConflictError('An article category with this name or slug already exists');
+      throw new ConflictError('A skill category with this name or slug already exists');
     }
     throw error;
   }
 }
 
 export async function remove(id: number, client: PrismaClientOrTx = prisma): Promise<void> {
-  await client.articleCategory.delete({ where: { id } });
+  await client.skillCategory.delete({ where: { id } });
 }
 
 export async function reorder(
@@ -74,7 +66,7 @@ export async function reorder(
 ): Promise<void> {
   await Promise.all(
     items.map((item) =>
-      client.articleCategory.update({
+      client.skillCategory.update({
         where: { id: item.id },
         data: { displayOrder: item.displayOrder },
       }),

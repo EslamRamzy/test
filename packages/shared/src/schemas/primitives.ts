@@ -94,3 +94,20 @@ export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 
 /** Sort direction. Sort *keys* are validated per resource against an allow-list. */
 export const sortOrderSchema = z.enum(['asc', 'desc']).default('desc');
+
+/**
+ * `z.iso.date()`/`z.iso.datetime()` alone validate the STRING shape but
+ * leave the value a string — passed straight through to Prisma, a
+ * date-only string (`"2022-06-01"`, no time component) hits SQLite's
+ * driver adapter as "premature end of input. Expected ISO-8601 DateTime,"
+ * confirmed empirically against the real database, not assumed from
+ * reading Prisma's docs. `.transform((v) => new Date(v))` converts a
+ * validated string into a real `Date` at the schema boundary — the only
+ * place across the whole call chain — so nothing downstream, in any
+ * repository's `create`/`update`, ever hands Prisma a raw date string
+ * again. `new Date("2022-06-01")` itself parses correctly (UTC midnight)
+ * once it's an actual `Date` being constructed rather than a string percolating
+ * through to Prisma's own parser.
+ */
+export const isoDateAsDate = z.iso.date().transform((value) => new Date(value));
+export const isoDatetimeAsDate = z.iso.datetime().transform((value) => new Date(value));

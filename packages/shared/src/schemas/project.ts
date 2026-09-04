@@ -1,6 +1,6 @@
 import { PROJECT_CATEGORIES } from '../constants/content.js';
 import { z } from 'zod';
-import { httpsUrlSchema, slugSchema } from './primitives.js';
+import { httpsUrlSchema, isoDatetimeAsDate, slugSchema } from './primitives.js';
 
 /**
  * `projects` — the most complex module (doc 07 §3: "Tabbed editor:
@@ -47,7 +47,7 @@ export const projectCreateSchema = z
     securityTested: z.boolean().optional(),
     securitySummary: z.string().trim().max(5000).optional(),
     testingSummary: z.string().trim().max(5000).optional(),
-    publishedAt: z.iso.datetime().optional(),
+    publishedAt: isoDatetimeAsDate.optional(),
 
     features: z
       .array(

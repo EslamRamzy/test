@@ -91,3 +91,11 @@ export const adminListQuerySchema = paginationQuerySchema
   })
   .strict();
 export type AdminListQuery = z.infer<typeof adminListQuerySchema>;
+
+/** `GET /admin/skills` — the one simple resource whose list needs a filter `adminListQuerySchema` doesn't have (doc 07 §3: "Grouped by category"). A dedicated `.extend()` rather than adding `categoryId` to the generic schema itself, which every OTHER resource's `.strict()` validation would then also have to explicitly reject. */
+export const skillListQuerySchema = adminListQuerySchema
+  .extend({
+    categoryId: z.coerce.number().int().positive().optional(),
+  })
+  .strict();
+export type SkillListQuery = z.infer<typeof skillListQuerySchema>;
