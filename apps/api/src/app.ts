@@ -1,18 +1,26 @@
 import cors from 'cors';
 import express from 'express';
-import type { Express, NextFunction, Request, Response } from 'express';
+import type { Express } from 'express';
 import helmet from 'helmet';
 import { env } from './config/env.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { permissionsPolicy } from './middleware/securityHeaders.js';
+import { requestId } from './middleware/requestId.js';
+import { requestLogger } from './middleware/requestLogger.js';
 import { healthRouter } from './routes/health.routes.js';
 
 /**
  * Builds the Express application without binding a port, so integration tests
  * can drive it through supertest with no sockets involved (docs/architecture/10 §2).
  *
- * Middleware order matters and is specified in docs/architecture/03 §6. Phase 1
- * installs only the pieces that exist so far; Phase 3 fills in requestId,
- * logging, rate limiting, validation and the typed error handler, and Phase 4
- * adds CSRF, authentication and authorization.
+ * Middleware order matters and follows docs/architecture/03 §6 exactly, minus
+ * the pieces that don't exist until Phase 4 (cookies, CSRF, authenticate,
+ * authorize) and Phase 5 (`validate`, which is per-route and mounted by the
+ * routes that need it, not globally here):
+ *
+ *   requestId → requestLogger (pino-http) → helmet → permissionsPolicy →
+ *   cors → express.json(limit) → routes → notFoundHandler → errorHandler
  */
 export function createApp(): Express {
   const app = express();
@@ -22,9 +30,25 @@ export function createApp(): Express {
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
 
-  // frameguard defaults to SAMEORIGIN; the API is never framed, so DENY.
-  // The full header set (CSP, HSTS, COOP/CORP) lands in Phase 3.
-  app.use(helmet({ frameguard: { action: 'deny' } }));
+  app.use(requestId);
+  app.use(requestLogger);
+
+  app.use(
+    helmet({
+      // frameguard defaults to SAMEORIGIN; the API is never framed, so DENY.
+      frameguard: { action: 'deny' },
+      // doc09 §2 wants 2 years + preload; helmet's own default is 1 year
+      // with no preload flag.
+      strictTransportSecurity: { maxAge: 63_072_000, includeSubDomains: true, preload: true },
+      referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+      // CSP is deliberately left at helmet's built-in default here, not
+      // disabled and not the final policy either: doc09 §2's real,
+      // nonce-based CSP is a Phase 11 rollout (report-only first, then
+      // enforced) — helmet's default self-only policy is a reasonable
+      // interim baseline, not a placeholder to remove without replacing.
+    }),
+  );
+  app.use(permissionsPolicy);
 
   // Exact-match allow-list. `origin: true` would reflect any origin, which
   // combined with credentials is equivalent to disabling the same-origin policy.
@@ -43,23 +67,8 @@ export function createApp(): Express {
 
   app.use('/api/v1', healthRouter);
 
-  app.use((_req: Request, res: Response) => {
-    res.status(404).json({
-      success: false,
-      error: { code: 'NOT_FOUND', message: 'Resource not found' },
-    });
-  });
-
-  // Express identifies an error handler by its four-parameter signature, so
-  // `next` must stay in the list even though it is unused here.
-  app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
-    // eslint-disable-next-line no-console -- replaced by the pino logger in Phase 3
-    console.error(error);
-    res.status(500).json({
-      success: false,
-      error: { code: 'INTERNAL_ERROR', message: 'An unexpected error occurred' },
-    });
-  });
+  app.use(notFoundHandler);
+  app.use(errorHandler);
 
   return app;
 }

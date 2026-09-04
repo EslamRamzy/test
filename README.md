@@ -3,11 +3,11 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 2 of 16 — database and migrations.**
-> The full schema is implemented, migrated, seeded, and enforcement-tested (CHECK constraints,
-> foreign keys, the FTS5 search index). See [`docs/`](docs/README.md) and the
-> [Phase 2 report](docs/phases/phase-02-report.md). The public pages, admin dashboard and API
-> surface itself still don't exist yet — they arrive in Phases 3–13 per the
+> **Status: Phase 3 of 16 — backend foundation.**
+> Database (Phase 2) plus error handling, structured logging, rate limiting, request validation and
+> the response envelope (Phase 3) are implemented and tested. See [`docs/`](docs/README.md) and the
+> [Phase 3 report](docs/phases/phase-03-report.md). There are no public pages, no admin dashboard,
+> and no business API routes yet — those arrive in Phases 4–13 per the
 > [implementation plan](docs/architecture/11-implementation-plan.md).
 
 ---

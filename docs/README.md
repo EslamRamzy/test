@@ -1,9 +1,10 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 2 of 16 complete** — the full database schema is implemented, migrated, seeded and
-> enforcement-tested against the real SQLite engine. Phase 3 is unblocked. No open decisions remain
-> that block current work — see [12](architecture/12-decisions-pending-approval.md) for the small
-> number still open, none of which gate the next phase.
+> **Status: Phase 3 of 16 complete** — error handling, structured logging, rate limiting, request
+> validation and the response envelope are all implemented and tested against a real Express app.
+> Phase 4 (Authentication + Authorization — the highest-risk phase) is unblocked. No open decisions
+> remain that block current work — see [12](architecture/12-decisions-pending-approval.md) for the
+> small number still open, none of which gate the next phase.
 
 ## Documents
 
@@ -29,6 +30,7 @@
 |---|---|
 | 1 | [Project setup](phases/phase-01-report.md) |
 | 2 | [Database + migrations](phases/phase-02-report.md) |
+| 3 | [Backend foundation](phases/phase-03-report.md) |
 
 ## How to review
 
