@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  adminListQuerySchema,
   articleListQuerySchema,
   projectListQuerySchema,
   searchQuerySchema,
@@ -76,5 +77,28 @@ describe('searchQuerySchema', () => {
 
   it('rejects a type outside the allow-list', () => {
     expect(() => searchQuerySchema.parse({ q: 'security', type: 'users' })).toThrow();
+  });
+});
+
+describe('adminListQuerySchema', () => {
+  it('applies pagination defaults with everything else optional', () => {
+    const result = adminListQuerySchema.parse({});
+    expect(result.page).toBe(1);
+    expect(result.status).toBeUndefined();
+    expect(result.sort).toBeUndefined();
+  });
+
+  it('accepts q/status/sort/order together', () => {
+    const result = adminListQuerySchema.parse({
+      q: 'security',
+      status: 'DRAFT',
+      sort: 'title',
+      order: 'asc',
+    });
+    expect(result).toMatchObject({ q: 'security', status: 'DRAFT', sort: 'title', order: 'asc' });
+  });
+
+  it('rejects a status outside DRAFT/PUBLISHED/ARCHIVED', () => {
+    expect(() => adminListQuerySchema.parse({ status: 'DELETED' })).toThrow();
   });
 });

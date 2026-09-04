@@ -69,3 +69,25 @@ export const searchQuerySchema = z
   })
   .strict();
 export type SearchQuery = z.infer<typeof searchQuerySchema>;
+
+/**
+ * `GET /admin/{resource}` (doc 03 §5): "?page,pageSize,q,status,sort —
+ * includes drafts." One shared shape for every admin list endpoint,
+ * unlike the public list schemas above (each of which names its own
+ * resource-specific filters) — the admin CRUD factory (`services/
+ * adminCrudFactory.ts`) is what makes this reusable across ~13
+ * structurally different resources in the first place, so its query
+ * schema is generic too. `sort` stays a plain string here, validated
+ * against a per-resource allow-list the factory's own caller supplies
+ * (never interpolated into a query directly) — a single Zod schema can't
+ * statically enumerate 13 different resources' own sortable columns.
+ */
+export const adminListQuerySchema = paginationQuerySchema
+  .extend({
+    q: z.string().trim().max(100).optional(),
+    status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']).optional(),
+    sort: z.string().trim().max(50).optional(),
+    order: z.enum(['asc', 'desc']).optional(),
+  })
+  .strict();
+export type AdminListQuery = z.infer<typeof adminListQuerySchema>;
