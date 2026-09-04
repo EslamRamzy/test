@@ -1,7 +1,13 @@
 # 03 — API Architecture
 
-REST over HTTPS, JSON only. Versioned by path prefix from day one: **`/api/v1`**, exposed publicly
-through the Next.js rewrite as `/api/*`.
+REST over HTTPS, JSON only. Versioned by path prefix from day one: **`/api/v1`**, served from its
+own origin `https://api.eslamramzy.dev` (decision D1, doc 01 §3).
+
+Because the browser reaches the API cross-origin, **every mutating request is preflighted**. Two
+consequences are designed for rather than discovered later: `Access-Control-Max-Age: 600` keeps the
+preflight cost to one round trip per ten minutes per method/header combination, and the admin client
+sets `credentials: 'include'` on every call — a fetch without it silently sends no cookies and
+returns `401`, which is a confusing failure mode worth naming here.
 
 ---
 

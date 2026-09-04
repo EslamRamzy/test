@@ -100,6 +100,12 @@ export async function getProject(slug: string) {
 }
 ```
 
+Because the API is a separate origin (decision D1), the **browser** client sets
+`credentials: 'include'` on every request and attaches `X-CSRF-Token` on mutations; a request
+missing either silently loses its cookies and returns `401`. Both are set once in
+`lib/api/client.ts` so no call site can forget. Server Components are unaffected — they call the
+internal address directly and forward cookies explicitly (doc 04 §7).
+
 Responses are parsed with the **same Zod schema the API validates against**. If the backend ever
 returns a shape the frontend does not expect, it fails loudly at the boundary instead of producing
 `undefined is not an object` deep in a component tree.

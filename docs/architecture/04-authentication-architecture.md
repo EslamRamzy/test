@@ -9,18 +9,28 @@ this is the highest-value target on the whole platform and you intend to pentest
 
 | Token | Lifetime | Storage | Contents |
 |---|---|---|---|
-| **Access token** (JWT, HS256) | **15 minutes** | `__Host-at` cookie: `HttpOnly; Secure; SameSite=Strict; Path=/` | `sub`, `role`, `tokenVersion`, `iat`, `exp`, `iss`, `aud`, `jti` |
-| **Refresh token** (opaque, 32 random bytes, base64url) | **7 days**, rotated on each use | `__Host-rt` cookie: `HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth` | Nothing — it is a random string; state lives in `refresh_tokens` |
+| **Access token** (JWT, HS256) | **15 minutes** | `__Secure-at` cookie: `HttpOnly; Secure; SameSite=Strict; Domain=.eslamramzy.dev; Path=/` | `sub`, `role`, `tokenVersion`, `iat`, `exp`, `iss`, `aud`, `jti` |
+| **Refresh token** (opaque, 32 random bytes, base64url) | **7 days**, rotated on each use | `__Secure-rt` cookie: `HttpOnly; Secure; SameSite=Strict; Domain=.eslamramzy.dev; Path=/api/v1/auth` | Nothing — it is a random string; state lives in `refresh_tokens` |
 
 **Why the refresh token is opaque, not a JWT:** a JWT refresh token cannot be revoked without a
 server-side list anyway, so the JWT adds nothing but a bigger cookie and a second signing key to
 leak. An opaque token is a database lookup, which is what revocation and reuse-detection require.
 
-**Why the access token is a cookie, not `Authorization: Bearer`:** because the frontend and API are
-same-origin (doc 01 §3), cookies are first-party and `HttpOnly` — which removes the entire class of
-"XSS steals the token from `localStorage`". The trade is CSRF exposure, handled in §5 below.
-This trade is the right one: XSS token theft is silent and persistent; CSRF is fully mitigable with
-a token that JavaScript from another origin cannot read.
+**Why the access token is a cookie, not `Authorization: Bearer`:** `HttpOnly` removes the entire
+class of "XSS steals the token from `localStorage`". The trade is CSRF exposure, handled in §5 below.
+This is the right trade: XSS token theft is silent and persistent, while CSRF is fully mitigable.
+
+**Why `__Secure-` and not `__Host-` (decision D1):** the frontend and API are on two subdomains, so
+the cookies need `Domain=.eslamramzy.dev` to be shared — and `__Host-` forbids a `Domain` attribute.
+`__Secure-` still guarantees the cookie was set over HTTPS, but no longer guarantees *which*
+subdomain set it. That gap is closed by the four mitigations in doc 01 §3 (no wildcard DNS, signed
+CSRF tokens, server-side session binding, `Origin` checks) rather than left open.
+
+**Why `SameSite=Strict` is still correct here:** `SameSite` is evaluated per *site*, not per origin.
+`eslamramzy.dev` → `api.eslamramzy.dev` is same-site, so `Strict` cookies are sent normally.
+`SameSite=None` is never used. The one visible trade: following a link from an external site
+straight to `/admin` will not send the cookie on that first top-level navigation, so the admin sees
+the login screen once. That is acceptable — arguably desirable — for a single-admin dashboard.
 
 `Path=/api/v1/auth` on the refresh cookie means it is not transmitted on ordinary API calls — it is
 only exposed on the three endpoints that need it, shrinking its attack surface.
@@ -52,7 +62,7 @@ sequenceDiagram
         A->>D: reset counters, set last_login_at
         A->>D: INSERT refresh_tokens (sha256 hash, new family_id)
         A->>D: INSERT audit_log LOGIN_SUCCESS
-        A-->>W: 200 + Set-Cookie __Host-at, __Host-rt, csrf
+        A-->>W: 200 + Set-Cookie __Secure-at, __Secure-rt, csrf
     end
 ```
 
@@ -78,7 +88,7 @@ sequenceDiagram
     participant A as API
     participant D as DB
 
-    C->>A: POST /auth/refresh (cookie __Host-rt)
+    C->>A: POST /auth/refresh (cookie __Secure-rt)
     A->>D: SELECT * FROM refresh_tokens WHERE token_hash = sha256(token)
     alt not found
         A-->>C: 401 + clear cookies
@@ -89,7 +99,7 @@ sequenceDiagram
         A-->>C: 401 + clear cookies  (all sessions dead)
     else found AND valid
         A->>D: revoke old, insert new token (same family_id)
-        A-->>C: 200 + new __Host-at + new __Host-rt
+        A-->>C: 200 + new __Secure-at + new __Secure-rt
     end
 ```
 
@@ -120,14 +130,18 @@ token is 256 bits of entropy — it is not brute-forceable, and refresh happens 
 
 Cookie auth requires it. Two layers:
 
-1. **`SameSite=Strict`** on both auth cookies — blocks essentially all cross-site submissions in
-   current browsers. This is the primary control.
-2. **Double-submit token** for defence in depth: `GET /auth/csrf` sets a non-`HttpOnly`
-   `__Host-csrf` cookie and returns the same value; the admin client echoes it in `X-CSRF-Token`
-   on every `POST/PATCH/PUT/DELETE`. The server compares them in constant time.
+1. **`SameSite=Strict`** on both auth cookies — blocks cross-*site* submissions.
+2. **Signed double-submit token.** `GET /auth/csrf` sets a non-`HttpOnly` `__Secure-csrf` cookie
+   containing `value.HMAC(value + sessionId, CSRF_SECRET)`; the admin client echoes the raw `value`
+   in `X-CSRF-Token`. The server recomputes the HMAC and compares in constant time.
+3. **`Origin` header check** on every state-changing request, against the same allow-list as CORS.
 
-Both are required because `SameSite` alone fails against a same-site subdomain takeover, and the
-double-submit alone fails if an attacker can set cookies. Together they cover each other.
+The **signed** variant is required rather than plain double-submit, and this is a direct consequence
+of decision D1. Plain double-submit assumes an attacker cannot set cookies — but with
+`Domain=.eslamramzy.dev`, any subdomain can. An attacker who controlled `blog.eslamramzy.dev` could
+set both halves of a plain double-submit pair and defeat it. Because the HMAC is bound to the
+server-side session and keyed with a secret the attacker does not have, a tossed cookie cannot be forged
+into a valid pair.
 
 Public `POST /contact` is exempt from CSRF (it is unauthenticated — there is no session to ride) but
 carries its own rate limit, honeypot and timing check.

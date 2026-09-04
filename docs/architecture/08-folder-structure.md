@@ -137,19 +137,25 @@ the `.gitignore` is not the control, it is the convenience.
 
 ```bash
 NODE_ENV=development
-# --- API ---
+# --- API (two origins — decision D1) ---
 PORT=4000
-API_INTERNAL_URL=http://localhost:4000
-PUBLIC_SITE_URL=http://localhost:3000
-CORS_ORIGIN=http://localhost:3000
+# Container-internal URL used by Next.js Server Components (never leaves the host)
+API_INTERNAL_URL=http://api:4000
+# Public API origin, baked into the browser bundle
+NEXT_PUBLIC_API_URL=https://api.local.eslamramzy.dev
+PUBLIC_SITE_URL=https://local.eslamramzy.dev
+# Exact-match allow-list, comma-separated. No regex, no suffix matching.
+CORS_ORIGIN=https://local.eslamramzy.dev
 # --- Database ---
 DATABASE_URL="file:./prisma/portfolio.db"
 # --- Auth (openssl rand -base64 48) ---
 JWT_SECRET=
 JWT_REFRESH_SECRET=
+CSRF_SECRET=
 JWT_ACCESS_TTL=15m
 JWT_REFRESH_TTL=7d
-COOKIE_DOMAIN=
+# Required for cross-subdomain cookies; must be the apex domain with a leading dot
+COOKIE_DOMAIN=.local.eslamramzy.dev
 # --- Bootstrap admin (used once) ---
 ADMIN_EMAIL=
 ADMIN_INITIAL_PASSWORD=

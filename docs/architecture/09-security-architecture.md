@@ -10,7 +10,8 @@ The platform is a security portfolio. It has to survive the pentest you are goin
 | # | Asset | Threat | Primary control |
 |---|---|---|---|
 | T1 | Admin account | Credential stuffing, brute force, user enumeration | Argon2id, dual rate limit, lockout, constant-time + identical failure responses (doc 04) |
-| T2 | Session | Token theft via XSS, CSRF, token replay | `HttpOnly` `__Host-` cookies, `SameSite=Strict`, CSP, rotation + reuse detection |
+| T2 | Session | Token theft via XSS, CSRF, token replay | `HttpOnly` `__Secure-` cookies, `SameSite=Strict`, CSP, rotation + reuse detection |
+| T2b | Session | **Cookie tossing / fixation from a sibling subdomain** (introduced by D1's `Domain=.eslamramzy.dev`) | No wildcard DNS, signed HMAC CSRF tokens, server-side session binding, `Origin` checks (doc 01 §3) |
 | T3 | Unpublished content | Draft leakage through the API or search | Status filter in the repository layer; separate admin-only functions; FTS5 indexes published rows only |
 | T4 | Database | SQL injection | Prisma parameterisation; the only raw SQL is FTS5, parameterised and input-constrained |
 | T5 | Public site visitors | Stored XSS via admin-authored markdown | Markdown-only authoring, `rehype-sanitize` allow-list, CSP without `unsafe-inline` |
@@ -31,9 +32,9 @@ Set by `helmet` at the API and by `next.config.ts` for the web app; the reverse 
 Content-Security-Policy: default-src 'self';
   script-src 'self' 'nonce-{random}';        # no unsafe-inline, no unsafe-eval
   style-src 'self' 'nonce-{random}';
-  img-src 'self' data: blob:;
+  img-src 'self' data: blob: https://api.eslamramzy.dev;
   font-src 'self';
-  connect-src 'self';
+  connect-src 'self' https://api.eslamramzy.dev;
   frame-ancestors 'none';
   form-action 'self';
   base-uri 'self';
@@ -54,7 +55,10 @@ generated per request in `middleware.ts` and threaded through. It is deployed in
 `Content-Security-Policy-Report-Only` first (Phase 11), then enforced once the report endpoint is
 quiet — an enforced CSP that breaks the site is worse than a measured rollout.
 
-## 3. CORS
+## 3. CORS — a load-bearing control (decision D1)
+
+With two origins, CORS is no longer defence in depth: it is what stands between an arbitrary website
+and an authenticated request to the API.
 
 ```ts
 cors({
@@ -62,13 +66,26 @@ cors({
   credentials: true,
   methods: ['GET','POST','PATCH','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type','X-CSRF-Token'],
-  maxAge: 600,
+  exposedHeaders: ['X-Request-Id'],
+  maxAge: 600,                          // one preflight per 10 min, not per request
 })
 ```
 
-Because the browser reaches the API same-origin through the Next.js rewrite (doc 01 §3), CORS is
-defence in depth rather than load-bearing. `origin: true` (reflect anything) is never used —
-combined with `credentials: true` it is equivalent to disabling the same-origin policy.
+Rules, each of which is a real finding if broken:
+
+- **Never `origin: true`** and never reflect the request's `Origin`. Combined with
+  `credentials: true` that is equivalent to disabling the same-origin policy — and it is the single
+  most common CORS misconfiguration.
+- **Never `origin: '*'` with credentials** (browsers reject it, but the attempt signals confusion).
+- The allow-list is exact-match, from `CORS_ORIGIN`. **No regex, no `endsWith('.eslamramzy.dev')`** —
+  a suffix check matches `evil-eslamramzy.dev` and is a classic bypass.
+- `null` origin is rejected (it is what sandboxed iframes and some local files send).
+- An `Origin` check runs **independently** of the CORS middleware on every state-changing request,
+  because CORS protects browsers, not tools — and a request with no `Origin` at all must not be
+  treated as trusted on a mutating route.
+
+An integration test asserts each of these: a disallowed origin gets no
+`Access-Control-Allow-Origin`, and a mutation carrying a foreign `Origin` is rejected outright.
 
 ## 4. Rate limiting (§32)
 

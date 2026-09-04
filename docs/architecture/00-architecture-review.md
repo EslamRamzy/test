@@ -59,15 +59,25 @@ and `CORS_ORIGIN` in `.env`. Those two facts fight each other:
 - Next.js Server Components fetching from `http://localhost:4000` do **not** automatically forward
   the browser's cookies — every authenticated server-side fetch must forward them explicitly.
 
-**Proposed resolution:** keep the two processes (the brief wants a real, independently testable API
-surface — and that is genuinely valuable for the security-testing goal in §45), but put them behind
-**one public origin** in every environment. Next.js `rewrites()` proxies `/api/*` → Express.
+**Resolution — decided (D1): two origins on the same registrable domain.**
+`eslamramzy.dev` (Next.js) and `api.eslamramzy.dev` (Express).
 
-Result: cookies are first-party (`SameSite=Strict`), no CORS preflight in normal operation, CORS
-stays configured as defence-in-depth for direct API access. The API remains directly reachable on
-its own port for testing tools (Burp, Postman, `supertest`).
+The key correction to the framing above: these are **cross-origin but same-site**, because
+`SameSite` is evaluated per registrable domain, not per origin. So `SameSite=None` is *not* required
+and is not used — `Strict` still works, and the CSRF posture stays strong.
 
-→ **Decision D1** in doc 12.
+What the decision actually costs:
+
+- CORS becomes a **load-bearing control** rather than defence in depth (every mutation is preflighted).
+- Cookies need `Domain=.eslamramzy.dev`, which **forbids the `__Host-` prefix**; `__Secure-` is used
+  instead, and the loss is compensated by no-wildcard DNS, signed CSRF tokens, server-side session
+  binding and an `Origin` check (doc 01 §3).
+- Local development must mirror the subdomain topology (`local.eslamramzy.dev` +
+  `api.local.eslamramzy.dev` in `/etc/hosts`), or the whole class of cookie bug this introduces
+  stays invisible until production.
+
+**Hard constraint recorded:** the API must stay a subdomain of the site's apex domain. Moving it to a
+different registrable domain would make it genuinely cross-site and force `SameSite=None`.
 
 ### C2 — "Bootstrap" vs "Premium / minimal / elegant / not a gaming site"
 

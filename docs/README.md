@@ -19,10 +19,10 @@
 | 09 | [Security Architecture](architecture/09-security-architecture.md) | Threat model, controls, secrets, hardening baseline |
 | 10 | [Testing Strategy](architecture/10-testing-strategy.md) | Test pyramid, tooling, coverage targets, security testing |
 | 11 | [Implementation Plan](architecture/11-implementation-plan.md) | 16 phases, deliverables, exit criteria |
-| 12 | [Decisions Pending Approval](architecture/12-decisions-pending-approval.md) | **Blocking questions — please answer before Phase 1** |
+| 12 | [Decisions](architecture/12-decisions-pending-approval.md) | Decisions taken (D1, D2, D3, D8) + **what is still open** |
 
 ## How to review
 
 1. Read **00** first — it lists everything I found wrong, missing, or ambiguous in the brief.
-2. Read **12** last — it is the list of decisions I will not make unilaterally.
+2. Read **12** for the decisions already taken and the ones still open (**D4** is the last blocking one).
 3. Everything between 01 and 11 is the proposed design. Comment on anything you want changed.

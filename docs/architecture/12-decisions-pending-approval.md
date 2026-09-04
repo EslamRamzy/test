@@ -1,39 +1,57 @@
-# 12 — Decisions Pending Your Approval
+# 12 — Decisions
 
-Each decision has my recommendation. **Answering "all defaults" accepts every recommendation** and
-I start Phase 1 immediately. Anything you change, I revise the affected docs first.
+## Decisions taken (approved 2026-09-04)
 
-Items **D1–D4 and D8 are blocking** — they change schema or structure and would be expensive to undo
-later. The rest can be decided during their phase, but earlier is cheaper.
+| # | Decision | Chosen |
+|---|---|---|
+| **D1** | API topology | **Two origins** — `eslamramzy.dev` + `api.eslamramzy.dev` *(not my recommendation; adopted as instructed)* |
+| **D2** | UI framework | **Bootstrap 5 SCSS source + custom token layer** + `react-bootstrap` |
+| **D3** | Deployment | **Linux VPS + Docker Compose + Caddy** |
+| **D8** | Authoring format | **Markdown** (GFM) with a split-pane editor, HTML stripped by the sanitiser |
+
+### What D1 changed in the design
+
+I described this option as requiring `SameSite=None`. That was wrong and worth correcting, because
+it makes the decision better than it looked: `eslamramzy.dev` and `api.eslamramzy.dev` are
+cross-origin but **same-site**, and `SameSite` is evaluated per registrable domain. `Strict` still
+works; `None` is never used.
+
+The real costs, now designed for:
+
+1. **CORS is load-bearing**, not defence in depth — exact-match allow-list, no reflection, no suffix
+   matching, plus an independent `Origin` check on mutations (doc 09 §3).
+2. **`__Host-` is lost** — cookies need `Domain=.eslamramzy.dev`, which the prefix forbids.
+   `__Secure-` is used instead (doc 04 §1).
+3. **Cookie tossing becomes a real threat** (T2b) — any subdomain can set cookies on the parent.
+   Mitigated by no-wildcard DNS, **signed HMAC** CSRF tokens rather than plain double-submit,
+   server-side session binding, and `Origin` checks (doc 01 §3, doc 04 §5).
+4. **Preflight on every mutation** — `Access-Control-Max-Age: 600`, and `credentials: 'include'`
+   centralised in one client module.
+5. **Local dev must mirror the subdomains** (`local.eslamramzy.dev` + `api.local.eslamramzy.dev` via
+   `/etc/hosts` and local TLS). Developing on bare `localhost` ports would hide exactly the bugs
+   this topology introduces.
+
+**Hard constraint:** the API must remain a subdomain of the site's apex domain. Moving it to a
+different registrable domain would make it genuinely cross-site and force `SameSite=None`.
+
+Documents updated for these decisions: 00, 01, 03, 04, 06, 08, 09, 11.
 
 ---
 
-### D1 — API topology *(blocking)*
-How should the browser reach the Express API?
+## Still open
 
-- **★ Recommended: one origin.** Next.js `rewrites()` proxies `/api/*` → Express. Cookies are
-  first-party, `SameSite=Strict`, no CORS in normal operation. Express stays directly reachable on
-  its own port for pentesting.
-- Alternative: separate origins (`api.eslamramzy.dev`) → requires `SameSite=None`, full CORS,
-  weaker CSRF posture. Only worth it if you want the API publicly branded as a separate service.
+Each has my recommendation. **Answering "all defaults" accepts every remaining recommendation.**
+None of these blocks Phase 1 — D5 should be settled before Phase 2 (schema), D10 before Phase 2 as
+well, and the rest during their own phase.
 
-### D2 — UI framework *(blocking)*
-The brief specifies Bootstrap; the visual direction (premium/minimal/elegant) is not Bootstrap's
-default look (review C2).
+### ~~D1 — API topology~~ · DECIDED: two origins
+See "Decisions taken" above.
 
-- **★ Recommended: keep Bootstrap**, but consume the SCSS source with a custom token layer and use
-  `react-bootstrap` for interactive components. Satisfies the stated stack; requires a deliberate
-  design pass in Phase 6.
-- Alternative: Tailwind + Radix primitives — faster to reach a distinctive look, but **changes your
-  stated tech stack**, so I will not do it without an explicit instruction.
+### ~~D2 — UI framework~~ · DECIDED: Bootstrap + SCSS tokens
+See above. A deliberate design pass in Phase 6 is what makes this work; I will show you the visual direction before building all 12 pages on top of it.
 
-### D3 — Deployment target *(blocking — determines Dockerfiles, storage, backups)*
-SQLite + local uploads require a **persistent writable volume**, which rules out Vercel/Netlify.
-
-- **★ Recommended: a Linux VPS** (Hetzner/DigitalOcean/Contabo) with Docker Compose + Caddy.
-  Full control, cheap, and it is a genuinely relevant thing to show on a security portfolio.
-- Alternatives: Fly.io with a volume · Railway with a volume · a home server behind a tunnel.
-- Please also confirm the **domain name** (I have used `eslamramzy.dev` as a placeholder).
+### ~~D3 — Deployment~~ · DECIDED: VPS + Docker Compose + Caddy
+See above. **Still needed from you:** the domain name (`eslamramzy.dev` is currently a placeholder) and, since D1 splits the API onto `api.<domain>`, confirmation that you control DNS for it.
 
 ### D4 — Meaning of `/security` *(blocking — affects routes, schema and admin IA)*
 - **★ Recommended:** `/security` = Security **Research** only (matches §5). Project security
@@ -65,12 +83,8 @@ access.
 - Alternative: an email-based reset flow — more convenient, meaningfully more attack surface on a
   single-admin site.
 
-### D8 — Content authoring format *(blocking — determines the whole XSS posture)*
-- **★ Recommended: Markdown** (GFM: tables, code fences, task lists) with a split-pane editor and
-  live preview. Raw HTML dropped by the sanitiser. Portable, diffable, and structurally safe.
-- Alternative: a WYSIWYG producing HTML — nicer for non-technical authors, but it makes your own
-  admin a stored-XSS vector and requires server-side sanitisation of every save. For a developer
-  writing technical articles with code samples, Markdown is also simply better.
+### ~~D8 — Authoring format~~ · DECIDED: Markdown
+See above. Full XSS pipeline in doc 09 §6.
 
 ### D9 — Contact email notification
 - **★ Recommended: optional and off by default.** Messages are always stored in the DB; if
@@ -116,12 +130,13 @@ them properly; otherwise they are noise and I will not mention them again.
 
 ## What I need from you to start
 
-1. **Answers to D1–D4 and D8** (or "all defaults").
+1. **An answer to D4** (the only remaining blocking item), and ideally **D5 and D10** before
+   Phase 2 touches the schema. Everything else can ride along with its phase.
 2. **The profile photo** — I will wire it as a `media` row referenced by `profiles.avatar_media_id`,
    replaceable from Admin → Settings. It will never be hardcoded in a component.
-3. **Domain name** (or confirmation to keep `eslamramzy.dev` as a placeholder).
+3. **Domain name**, plus confirmation you control DNS for the `api.` subdomain (required by D1).
 4. **Your professional headline and a short bio** for the seed data — or a placeholder, editable
    from the admin later.
 5. **Your real social links** (GitHub, LinkedIn, email) for the seeded `social_links` rows.
 
-Nothing else blocks Phase 1.
+Nothing blocks Phase 1 — I can start setup while D4/D5/D10 are still open.

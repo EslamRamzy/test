@@ -63,8 +63,9 @@ and a rate-limit bucket.
 with reuse detection, lockout, CSRF double-submit, `authenticate`/`authorize`, `audit` service,
 `admin:reset-password` CLI.
 **Exit:** the full auth test list in doc 10 §3 passes, **including** the generated authorization
-matrix; manual verification of cookie flags (`__Host-`, `HttpOnly`, `Secure`, `SameSite=Strict`) and
-of reuse detection killing a family.
+matrix; manual verification of cookie flags (`__Secure-`, `HttpOnly`, `Secure`, `SameSite=Strict`,
+`Domain=.eslamramzy.dev`), of the CORS allow-list rejecting foreign and suffix-matched origins, of
+the signed CSRF pair, and of reuse detection killing a token family.
 **This phase does not pass without a security review.** It is the highest-risk code in the project.
 
 ## Phase 5 — Public API
