@@ -93,6 +93,11 @@ export function countPublished() {
   return prisma.article.count({ where: publishedWhere() });
 }
 
+/** Admin dashboard counter: every article regardless of status. `ForAdmin`-suffixed (see docs/architecture/05 §5). */
+export function countAllForAdmin() {
+  return prisma.article.count();
+}
+
 /** slug + updatedAt only, for `GET /sitemap-data` (docs/architecture/03 §3). */
 export function findSlugsForSitemap() {
   return prisma.article.findMany({

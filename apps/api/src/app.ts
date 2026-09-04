@@ -5,10 +5,12 @@ import type { Express } from 'express';
 import helmet from 'helmet';
 import { env } from './config/env.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { noStore } from './middleware/noStore.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { permissionsPolicy } from './middleware/securityHeaders.js';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
+import { overviewRouter } from './routes/admin/overview.routes.js';
 import { authRouter } from './routes/auth.routes.js';
 import { docsRouter } from './routes/docs.routes.js';
 import { healthRouter } from './routes/health.routes.js';
@@ -104,6 +106,12 @@ export function createApp(): Express {
   app.use('/api/v1/contact', contactRouter);
   app.use('/api/v1/analytics', analyticsRouter);
   app.use('/api/v1/docs', docsRouter);
+
+  // Admin API (Phase 7+). `noStore` mounted once at the prefix — see that
+  // middleware's own comment for why every admin route needs it and a
+  // prefix mount is safer than remembering it per-route.
+  app.use('/api/v1/admin', noStore);
+  app.use('/api/v1/admin/overview', overviewRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

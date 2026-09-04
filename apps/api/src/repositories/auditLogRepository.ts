@@ -41,3 +41,18 @@ export function record(input: RecordAuditEventInput, client: PrismaClientOrTx = 
     },
   });
 }
+
+/**
+ * Admin dashboard's "Recent Activity" feed (docs/architecture/07 §3). No
+ * `ForAdmin` suffix — audit logs have no public counterpart at all, so
+ * there is nothing for the naming convention to distinguish this read
+ * from; every caller of this repository is already admin-only by
+ * construction.
+ */
+export function findRecent(limit: number) {
+  return prisma.auditLog.findMany({
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    include: { user: { select: { name: true } } },
+  });
+}

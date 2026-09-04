@@ -6,3 +6,4 @@ export * from './schemas/primitives.js';
 export * from './schemas/query.js';
 export * from './types/api.js';
 export * from './types/publicContent.js';
+export * from './types/adminContent.js';

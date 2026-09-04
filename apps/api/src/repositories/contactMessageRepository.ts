@@ -28,3 +28,8 @@ export function create(input: CreateContactMessageInput) {
 export function countSince(since: Date) {
   return prisma.contactMessage.count({ where: { createdAt: { gte: since } } });
 }
+
+/** Admin dashboard counter. `ForAdmin`-suffixed (docs/architecture/05 §5) even though messages have no public-facing counterpart — kept consistent with every other admin-only repository read. */
+export function countUnreadForAdmin() {
+  return prisma.contactMessage.count({ where: { status: 'UNREAD' } });
+}

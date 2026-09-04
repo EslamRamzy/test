@@ -228,6 +228,11 @@ export function countPublished() {
   return prisma.project.count({ where: publishedWhere() });
 }
 
+/** Admin dashboard counter: every project regardless of status. `ForAdmin`-suffixed (see below). */
+export function countAllForAdmin() {
+  return prisma.project.count();
+}
+
 /** slug + updatedAt only, for `GET /sitemap-data` (docs/architecture/03 §3). */
 export function findSlugsForSitemap() {
   return prisma.project.findMany({
