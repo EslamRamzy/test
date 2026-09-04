@@ -108,17 +108,26 @@ export const analyticsLimiter = createRateLimiter({ windowMs: 60 * 1000, limit: 
 /**
  * `admin` — docs/architecture/09 §4: 600 requests / 15 minutes, PER USER
  * (not per IP — a single admin legitimately working from several devices
- * or behind a NAT shouldn't share one IP-keyed bucket with itself). Mounted
- * after `authenticate` on every admin route (see routes/admin/**), so
- * `req.user` is always populated by the time this runs; the `'unknown'`
- * fallback exists only so the type-checker doesn't need `req.user` proven
- * non-null here — it is never actually reached given that mount order.
+ * or behind a NAT shouldn't share one IP-keyed bucket with itself). One
+ * bucket for every admin route regardless of method (doc09 §4's table has
+ * no separate read/write admin bucket) — mounted after `authenticate` on
+ * every admin route (see routes/admin/**), so `req.user` is always
+ * populated by the time this runs; the `'unknown'` fallback exists only so
+ * the type-checker doesn't need `req.user` proven non-null here — it is
+ * never actually reached given that mount order.
+ *
+ * Named `adminLimiter`, not `adminReadLimiter` — Phase 7 introduced this
+ * bucket for the one admin route that existed then (`GET /admin/overview`,
+ * a read), and the name reflected that single call site rather than doc09's
+ * actual bucket definition. Phase 8 mounts it on writes too, which is what
+ * the doc always specified; renamed here rather than carrying a misleading
+ * name into a dozen more route files.
  *
  * `upload` (20/hour) is still not created — no route exists to mount it on
  * until Phase 9 (§50: do not build ahead of need). `admin` no longer
  * qualifies for that deferral: Phase 7 is the first admin route.
  */
-export const adminReadLimiter = createRateLimiter({
+export const adminLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   limit: 600,
   keyGenerator: (req: Request) => String(req.user?.id ?? 'unknown'),

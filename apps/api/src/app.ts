@@ -11,6 +11,7 @@ import { permissionsPolicy } from './middleware/securityHeaders.js';
 import { requestId } from './middleware/requestId.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { overviewRouter } from './routes/admin/overview.routes.js';
+import { technologiesRouter } from './routes/admin/technologies.routes.js';
 import { authRouter } from './routes/auth.routes.js';
 import { docsRouter } from './routes/docs.routes.js';
 import { healthRouter } from './routes/health.routes.js';
@@ -112,6 +113,7 @@ export function createApp(): Express {
   // prefix mount is safer than remembering it per-route.
   app.use('/api/v1/admin', noStore);
   app.use('/api/v1/admin/overview', overviewRouter);
+  app.use('/api/v1/admin/technologies', technologiesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
