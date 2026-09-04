@@ -22,6 +22,14 @@ import * as adminApi from '@/lib/api/adminClient';
  * reachable") sends the user to `/admin/change-password` instead of the
  * dashboard — this is the ADMIN_INITIAL_PASSWORD bootstrap account's own
  * first login, not an edge case.
+ *
+ * `?reason=expired`/`?reason=password-changed` render as inline alerts
+ * here, not a `useToast()` toast — a toast lives in React context, which a
+ * full-navigation redirect (this component's own `window.location.href`
+ * above, or `proxy.ts`'s expired-session redirect) wipes before the
+ * destination page could ever render it. A message that must survive a
+ * full navigation belongs in the URL, read back by whatever the
+ * navigation lands on — exactly this pattern.
  */
 export function LoginForm(): React.JSX.Element {
   const searchParams = useSearchParams();
@@ -58,6 +66,11 @@ export function LoginForm(): React.JSX.Element {
       {reason === 'expired' && !formError && (
         <div className="alert alert-warning" role="status">
           Your session expired. Please sign in again.
+        </div>
+      )}
+      {reason === 'password-changed' && !formError && (
+        <div className="alert alert-success" role="status">
+          Password updated. Please sign in with your new password.
         </div>
       )}
 

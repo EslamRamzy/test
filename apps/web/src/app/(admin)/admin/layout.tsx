@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { QueryProvider } from '@/features/admin/components/QueryProvider';
+import { ToastProvider } from '@/features/admin/components/ToastProvider';
 
 /**
  * `/admin/*` root layout (docs/architecture/07 §1, §7) — structurally and
@@ -26,11 +27,13 @@ import { QueryProvider } from '@/features/admin/components/QueryProvider';
  * meta tag is what stops a page that got indexed some other way (a stray
  * inbound link) from actually appearing in search results.
  *
- * `<QueryProvider>` (a Client Component) wraps every page under this
- * layout, login/change-password included — mounting it once here, rather
- * than only inside `(protected)/layout.tsx`, means a future unauthenticated
- * admin page never has to remember to add it itself. Login and
- * change-password don't use react-query today, so this costs them nothing.
+ * `<QueryProvider>`/`<ToastProvider>` (Client Components) wrap every page
+ * under this layout, login/change-password included — mounting them once
+ * here, rather than only inside `(protected)/layout.tsx`, means a future
+ * unauthenticated admin page never has to remember to add them itself.
+ * Neither costs login/change-password anything today (they don't call
+ * `useToast()` — see `LoginForm.tsx`'s own comment on why their
+ * cross-navigation messages use the URL instead).
  */
 export const dynamic = 'force-dynamic';
 
@@ -42,7 +45,9 @@ export const metadata: Metadata = {
 export default function AdminLayout({ children }: { children: ReactNode }): React.JSX.Element {
   return (
     <div className="admin-shell">
-      <QueryProvider>{children}</QueryProvider>
+      <QueryProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </QueryProvider>
     </div>
   );
 }

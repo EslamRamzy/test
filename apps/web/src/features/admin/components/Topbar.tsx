@@ -3,6 +3,8 @@
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { ConfirmDialog } from '@/features/admin/components/ConfirmDialog';
+import { useToast } from '@/features/admin/components/ToastProvider';
 import { useCurrentUser } from '@/features/admin/hooks/useCurrentUser';
 import { useLogout } from '@/features/admin/hooks/useLogout';
 
@@ -39,15 +41,34 @@ function breadcrumbLabel(pathname: string): string {
  * for it to jump to is a small, contained addition on top of this Topbar,
  * not a redesign of it.
  *
- * The user menu's logout is a plain click for now, not yet behind
- * `ConfirmDialog` (task: "Toast system + ConfirmDialog shared primitives"
- * — built next, specifically to retrofit this).
+ * Sign out goes through `<ConfirmDialog>` (doc 07 §2: "Required before
+ * every destructive action") without `requireTypedConfirmation` — losing
+ * an active session is disruptive but reversible (sign back in), unlike
+ * deleting an entity, so a plain Yes/Cancel is enough here; typed
+ * confirmation is reserved for Phase 8's actual deletes.
  */
 export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }): React.JSX.Element {
   const pathname = usePathname();
   const { data: user } = useCurrentUser();
   const logout = useLogout();
+  const toast = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  function handleConfirmLogout(): void {
+    logout.mutate(undefined, {
+      onError: () => {
+        setShowLogoutConfirm(false);
+        toast.show({
+          message: 'Signing out failed to reach the server. Please try again.',
+          variant: 'danger',
+        });
+      },
+      // No onSuccess handler here — `useLogout` itself navigates away on
+      // success, which unmounts this component before any state update
+      // here would matter.
+    });
+  }
 
   return (
     <header className="admin-topbar">
@@ -92,16 +113,29 @@ export function Topbar({ onToggleSidebar }: { onToggleSidebar: () => void }): Re
                 type="button"
                 role="menuitem"
                 className="admin-topbar__user-menu-item"
-                onClick={() => logout.mutate()}
-                disabled={logout.isPending}
+                onClick={() => {
+                  setMenuOpen(false);
+                  setShowLogoutConfirm(true);
+                }}
               >
                 <span className="bi bi-box-arrow-right me-2" aria-hidden="true" />
-                {logout.isPending ? 'Signing out…' : 'Sign out'}
+                Sign out
               </button>
             </div>
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        show={showLogoutConfirm}
+        title="Sign out?"
+        message="You'll need to sign in again to get back to the admin dashboard."
+        confirmLabel="Sign out"
+        variant="primary"
+        confirming={logout.isPending}
+        onConfirm={handleConfirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </header>
   );
 }

@@ -1520,3 +1520,12 @@ $admin-topbar-height: 56px;
     display: none;
   }
 }
+
+// `<ToastProvider>` (docs/architecture/07 §6) — react-bootstrap's own
+// `ToastContainer` handles fixed positioning; this only needs to sit above
+// everything else this shell renders, sidebar and user-menu dropdown
+// included.
+.admin-toast-container {
+  z-index: 1060;
+  padding: var(--space-4);
+}
