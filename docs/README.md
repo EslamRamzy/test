@@ -1,14 +1,17 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 6 of 16 complete, plus an approved visual redesign** — the full public website
-> (all 12 routes, the 10 homepage sections, the case-study renderer, the sanitized markdown
-> pipeline, light/dark theming with no flash) renders entirely from the real Phase 5 API, zero
-> hardcoded content, now carrying the "Amber Signal" visual identity approved after a design-
-> concept review. Lighthouse ≥ 90 on Performance/Accessibility/Best Practices/SEO (100 on three of
-> four checked routes; the one non-100 elsewhere traces to a disposable test-environment gap, not
-> a code defect) and axe reports zero violations across all 12 routes in both themes. See the
-> [Phase 6 report](phases/phase-06-report.md) and the
-> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 7 (Admin shell) is
+> **Status: Phase 7 of 16 complete** — the admin shell: `GET /admin/overview`, an admin API client
+> with CSRF and single-flight token refresh (doc 04 §6), route protection (`proxy.ts`), login and
+> the bootstrap account's forced password change, a Sidebar/Topbar shell, Toast/ConfirmDialog
+> primitives, and a dashboard overview with real counters. Verified against a real browser and a
+> real API, including a genuinely expired access token (not simulated) and its transparent
+> single-flight refresh. A real cookie bug was found and fixed along the way (see the phase
+> report §4.1) — `secure: isProduction` silently dropped every auth cookie in any real browser
+> outside `NODE_ENV=production`, which would have broken login the moment this phase's frontend
+> tried to authenticate for real. axe reports zero violations on both new pages, both themes. See
+> the [Phase 7 report](phases/phase-07-report.md), the
+> [Phase 6 report](phases/phase-06-report.md), and the
+> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 8 (Content management) is
 > unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
@@ -42,6 +45,7 @@
 | 4 | [Authentication + authorization](phases/phase-04-report.md) |
 | 5 | [Public API](phases/phase-05-report.md) |
 | 6 | [Public website](phases/phase-06-report.md) |
+| 7 | [Admin shell](phases/phase-07-report.md) |
 
 ## Design
 
