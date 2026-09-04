@@ -372,3 +372,79 @@ export interface ProjectAdminRow {
   technologies: ProjectTechnologyRow[];
   assessments: SecurityAssessmentRow[];
 }
+
+export interface SiteSettingRow {
+  id: number;
+  key: string;
+  value: string | null;
+  valueType: string;
+  groupName: string | null;
+  isPublic: boolean;
+  updatedAt: string;
+}
+
+/** `siteSettingService.ts`'s `listSettingsForAdmin` — already grouped server-side by `groupName` (an ungrouped row's `groupName` becomes `'general'`). */
+export interface SettingsGroupDto {
+  groupName: string;
+  settings: SiteSettingRow[];
+}
+
+export interface ProfileAdminRow {
+  id: number;
+  fullName: string;
+  headline: string | null;
+  shortBio: string | null;
+  fullBio: string | null;
+  location: string | null;
+  publicEmail: string | null;
+  avatarMediaId: number | null;
+  resumeMediaId: number | null;
+  availableForWork: boolean;
+  updatedAt: string;
+  avatarMedia: AdminMediaFullRow | null;
+  resumeMedia: AdminMediaFullRow | null;
+}
+
+/** `GET /admin/audit-logs` (doc07 §3: "read-only table... no create/edit/delete anywhere in the UI") — the FULL row, unlike `AuditLogEntryDto` above (the Dashboard's own trimmed shape for its "Recent Activity" list). */
+export interface AuditLogRow {
+  id: number;
+  userId: number | null;
+  action: string;
+  entityType: string | null;
+  entityId: number | null;
+  metadataJson: string | null;
+  ipHash: string | null;
+  userAgent: string | null;
+  createdAt: string;
+  user: { name: string; email: string } | null;
+}
+
+export interface AnalyticsSeriesPoint {
+  bucket: string;
+  views: number;
+  uniqueVisitors: number;
+}
+
+export interface AnalyticsTopContentEntry {
+  entityId: number;
+  slug: string;
+  title: string;
+  views: number;
+}
+
+export interface AnalyticsReferrerHostRow {
+  referrerHost: string;
+  views: number;
+}
+
+/** `GET /admin/analytics` (doc07 §3: "Views over time, top projects, top articles, referrer hosts, date-range picker") — `analyticsService.ts`'s own `AnalyticsOverview`. */
+export interface AnalyticsOverviewDto {
+  from: string;
+  to: string;
+  totalViews: number;
+  uniqueVisitors: number;
+  series: AnalyticsSeriesPoint[];
+  topProjects: AnalyticsTopContentEntry[];
+  topArticles: AnalyticsTopContentEntry[];
+  topReferrerHosts: AnalyticsReferrerHostRow[];
+}
