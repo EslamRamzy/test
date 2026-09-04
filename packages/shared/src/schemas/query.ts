@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { PROJECT_CATEGORIES, RESEARCH_CATEGORIES } from '../constants/content.js';
-import { paginationQuerySchema, slugSchema } from './primitives.js';
+import { isoDateAsDate, paginationQuerySchema, slugSchema } from './primitives.js';
 
 /**
  * Public list-query schemas (docs/architecture/03 §2, §3): pagination plus
@@ -117,3 +117,22 @@ export const projectAdminListQuerySchema = adminListQuerySchema
   })
   .strict();
 export type ProjectAdminListQuery = z.infer<typeof projectAdminListQuerySchema>;
+
+/**
+ * `GET /admin/audit-logs` — "?action,entityType,userId,from,to,page" (doc03
+ * §5). `action`/`entityType` are plain strings, not enums: audit action
+ * names are ad-hoc per module (`ARTICLE_PUBLISH`, `PROJECT_REORDER`, ...),
+ * spread across every service in this codebase with no single governing
+ * constant to enumerate them against — the filter just needs to match
+ * whatever string a caller already knows an audit entry carries.
+ */
+export const auditLogQuerySchema = paginationQuerySchema
+  .extend({
+    action: z.string().trim().min(1).max(100).optional(),
+    entityType: z.string().trim().min(1).max(50).optional(),
+    userId: z.coerce.number().int().positive().optional(),
+    from: isoDateAsDate.optional(),
+    to: isoDateAsDate.optional(),
+  })
+  .strict();
+export type AuditLogQuery = z.infer<typeof auditLogQuerySchema>;

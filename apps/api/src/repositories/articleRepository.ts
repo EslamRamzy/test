@@ -292,3 +292,11 @@ export function duplicate(
     include: ADMIN_INCLUDE,
   });
 }
+
+/** `id`/`slug`/`title` only, for the admin analytics "top content" table — same reasoning as `projectRepository.ts`'s own. */
+export function findTitlesByIds(ids: number[]) {
+  return prisma.article.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, slug: true, title: true },
+  });
+}

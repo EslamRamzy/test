@@ -1,3 +1,4 @@
+import type { Prisma } from '../../generated/prisma/client.js';
 import { prisma } from '../config/prisma.js';
 import type { PrismaClientOrTx } from '../config/prisma.js';
 
@@ -55,4 +56,49 @@ export function findRecent(limit: number) {
     take: limit,
     include: { user: { select: { name: true } } },
   });
+}
+
+/**
+ * `GET /admin/audit-logs` — "read-only, no writes/deletes" (doc03 §5): this
+ * is the only OTHER export this file has, alongside `record`/`findRecent`.
+ * No `*ForAdmin` suffix (same reasoning as `findRecent`'s own comment —
+ * audit logs have no public counterpart at all to distinguish this from).
+ */
+export interface AuditLogListFilter {
+  action: string | undefined;
+  entityType: string | undefined;
+  userId: number | undefined;
+  from: Date | undefined;
+  to: Date | undefined;
+  page: number;
+  pageSize: number;
+}
+
+export async function list(filter: AuditLogListFilter) {
+  const where: Prisma.AuditLogWhereInput = {
+    ...(filter.action ? { action: filter.action } : {}),
+    ...(filter.entityType ? { entityType: filter.entityType } : {}),
+    ...(filter.userId !== undefined ? { userId: filter.userId } : {}),
+    ...(filter.from || filter.to
+      ? {
+          createdAt: {
+            ...(filter.from ? { gte: filter.from } : {}),
+            ...(filter.to ? { lte: filter.to } : {}),
+          },
+        }
+      : {}),
+  };
+
+  const [items, total] = await Promise.all([
+    prisma.auditLog.findMany({
+      where,
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+      skip: (filter.page - 1) * filter.pageSize,
+      take: filter.pageSize,
+    }),
+    prisma.auditLog.count({ where }),
+  ]);
+
+  return { items, total };
 }

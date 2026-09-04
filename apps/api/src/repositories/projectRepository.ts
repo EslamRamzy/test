@@ -651,3 +651,11 @@ export function duplicate(
     include: ADMIN_INCLUDE,
   });
 }
+
+/** `id`/`slug`/`title` only, for the admin analytics "top content" table — joining page-view entity ids back to their titles (`analyticsService.ts`). */
+export function findTitlesByIds(ids: number[]) {
+  return prisma.project.findMany({
+    where: { id: { in: ids } },
+    select: { id: true, slug: true, title: true },
+  });
+}

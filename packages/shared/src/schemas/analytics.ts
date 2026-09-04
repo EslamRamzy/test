@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isoDateAsDate } from './primitives.js';
 
 /**
  * The page-view beacon (docs/architecture/03 §3, docs/architecture/09 §10).
@@ -16,3 +17,13 @@ export const analyticsViewSchema = z
   })
   .strict();
 export type AnalyticsViewInput = z.infer<typeof analyticsViewSchema>;
+
+/** `GET /admin/analytics` — "?from,to,groupBy" (doc03 §5). `from`/`to` default in the service, not here (the "last 30 days" default depends on the current date, which a static schema default can't express). */
+export const analyticsAdminQuerySchema = z
+  .object({
+    from: isoDateAsDate.optional(),
+    to: isoDateAsDate.optional(),
+    groupBy: z.enum(['day', 'week', 'month']).default('day'),
+  })
+  .strict();
+export type AnalyticsAdminQuery = z.infer<typeof analyticsAdminQuerySchema>;

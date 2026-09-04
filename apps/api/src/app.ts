@@ -15,10 +15,14 @@ import { articlesRouter as adminArticlesRouter } from './routes/admin/articles.r
 import { certificationsRouter } from './routes/admin/certifications.routes.js';
 import { educationRouter } from './routes/admin/education.routes.js';
 import { experienceRouter } from './routes/admin/experience.routes.js';
+import { analyticsAdminRouter } from './routes/admin/analytics.routes.js';
 import { assessmentsRouter } from './routes/admin/assessments.routes.js';
+import { auditLogsRouter } from './routes/admin/auditLogs.routes.js';
 import { findingsRouter } from './routes/admin/findings.routes.js';
 import { overviewRouter } from './routes/admin/overview.routes.js';
+import { profileRouter as adminProfileRouter } from './routes/admin/profile.routes.js';
 import { projectsRouter as adminProjectsRouter } from './routes/admin/projects.routes.js';
+import { settingsRouter } from './routes/admin/settings.routes.js';
 import { securityResearchRouter } from './routes/admin/securityResearch.routes.js';
 import { skillCategoriesRouter } from './routes/admin/skillCategories.routes.js';
 import { skillsRouter } from './routes/admin/skills.routes.js';
@@ -142,6 +146,10 @@ export function createApp(): Express {
   app.use('/api/v1/admin/projects', adminProjectsRouter);
   app.use('/api/v1/admin/assessments', assessmentsRouter);
   app.use('/api/v1/admin/findings', findingsRouter);
+  app.use('/api/v1/admin/settings', settingsRouter);
+  app.use('/api/v1/admin/profile', adminProfileRouter);
+  app.use('/api/v1/admin/audit-logs', auditLogsRouter);
+  app.use('/api/v1/admin/analytics', analyticsAdminRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
