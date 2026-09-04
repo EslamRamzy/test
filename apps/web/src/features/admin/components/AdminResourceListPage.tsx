@@ -13,13 +13,16 @@ import { useToast } from './ToastProvider';
 /**
  * The List screen of doc07 §2's module pattern
  * (`/admin/{module}`: "search · status filter · sort · pagination · bulk
- * actions"), generic across every simple CRUD module (doc07 §3) so a new
- * one is a column array and a handful of props, not a bespoke page. The
- * three publish-workflow resources (Articles, Security Research, Projects)
- * have their own list pages instead — a `<StatusBadge>`/`<PublishControls>`
- * pair and readiness-gated actions are enough more machinery that folding
- * them into this component would make it harder to read for the 10
- * resources that don't need any of it.
+ * actions"), generic across every module — including the three
+ * publish-workflow ones (Articles, Security Research, Projects), via
+ * `statusFilter` below, which just wires `<ResourceToolbar>`'s existing
+ * status dropdown into the query params (an ordinary filter, no different
+ * from `extraParams`). What those three resources DON'T get from here is
+ * `<StatusBadge>`/`<PublishControls>` inside the row itself — the caller's
+ * own `columns` array renders a status column (typically
+ * `<StatusBadge>`), and publish/unpublish/archive/duplicate live on the
+ * EDIT page, not as list row actions, since those are readiness-gated
+ * actions with their own error surface, not a one-line button.
  */
 export interface AdminResourceListPageHooks<TRow> {
   useList: (
@@ -62,6 +65,8 @@ export interface AdminResourceListPageProps<TRow extends { id: number }> {
   reorderable?: boolean;
   /** Extra content next to the page title — e.g. Skills' "Manage Categories" link. */
   titleExtra?: React.ReactNode;
+  /** Renders `<ResourceToolbar>`'s status dropdown and wires it into `useList`'s `status` param — for the three publish-workflow resources only. */
+  statusFilter?: boolean;
 }
 
 export function AdminResourceListPage<TRow extends { id: number }>({
@@ -81,10 +86,12 @@ export function AdminResourceListPage<TRow extends { id: number }>({
   pageSize = 20,
   reorderable = false,
   titleExtra,
+  statusFilter = false,
 }: AdminResourceListPageProps<TRow>): React.JSX.Element {
   const { show } = useToast();
   const [page, setPage] = useState(1);
   const [q, setQ] = useState('');
+  const [status, setStatus] = useState<string | undefined>(undefined);
   const [sort, setSort] = useState<string | undefined>(defaultSort);
   const [order, setOrder] = useState<'asc' | 'desc' | undefined>(defaultOrder);
   const [deleteTarget, setDeleteTarget] = useState<TRow | null>(null);
@@ -93,6 +100,7 @@ export function AdminResourceListPage<TRow extends { id: number }>({
     page,
     pageSize,
     q: q || undefined,
+    status,
     sort,
     order,
     ...extraParams,
@@ -105,6 +113,11 @@ export function AdminResourceListPage<TRow extends { id: number }>({
 
   function handleSearchChange(value: string): void {
     setQ(value);
+    setPage(1);
+  }
+
+  function handleStatusChange(value: string | undefined): void {
+    setStatus(value);
     setPage(1);
   }
 
@@ -163,6 +176,7 @@ export function AdminResourceListPage<TRow extends { id: number }>({
         searchPlaceholder={searchPlaceholder}
         newHref={newHref}
         {...(newLabel ? { newLabel } : {})}
+        {...(statusFilter ? { statusValue: status, onStatusChange: handleStatusChange } : {})}
       />
 
       <DataTable

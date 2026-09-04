@@ -103,6 +103,28 @@ describe('AdminResourceListPage', () => {
     expect(await screen.findByText('React deleted.')).toBeInTheDocument();
   });
 
+  it('statusFilter: renders the status dropdown and passes its value to useList, resetting to page 1', async () => {
+    const { hooks, listSpy } = makeHooks([{ id: 1, name: 'React' }]);
+    renderPage(hooks, { statusFilter: true });
+    listSpy.mockClear();
+
+    fireEvent.change(screen.getByLabelText('Filter by status'), {
+      target: { value: 'PUBLISHED' },
+    });
+
+    await waitFor(() => {
+      expect(listSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ page: 1, status: 'PUBLISHED' }),
+      );
+    });
+  });
+
+  it('omits the status dropdown when statusFilter is not set', () => {
+    const { hooks } = makeHooks([{ id: 1, name: 'React' }]);
+    renderPage(hooks);
+    expect(screen.queryByLabelText('Filter by status')).not.toBeInTheDocument();
+  });
+
   it('reorderable: move-down recomputes displayOrder over the full row set and calls reorder', () => {
     const reorderMutate = vi.fn();
     const { hooks } = makeHooks([

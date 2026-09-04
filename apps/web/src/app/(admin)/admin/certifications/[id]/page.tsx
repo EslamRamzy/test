@@ -8,6 +8,7 @@ import { CertificationFields } from '@/features/admin/certifications/Certificati
 import { certificationsHooks } from '@/features/admin/certifications/client';
 import {
   certificationFormSchema,
+  toCertificationWirePayload,
   type CertificationFormValues,
 } from '@/features/admin/certifications/formSchema';
 import { toDateInputValue } from '@/features/admin/lib/formValues';
@@ -27,6 +28,7 @@ export default function EditCertificationPage(): React.JSX.Element {
       name: '',
       issuer: '',
       description: '',
+      certificateMediaId: '',
       credentialUrl: '',
       issueDate: '',
       expirationDate: '',
@@ -41,6 +43,7 @@ export default function EditCertificationPage(): React.JSX.Element {
       name: row.name,
       issuer: row.issuer,
       description: row.description ?? '',
+      certificateMediaId: row.certificateMediaId ? String(row.certificateMediaId) : '',
       credentialUrl: row.credentialUrl ?? '',
       issueDate: toDateInputValue(row.issueDate),
       expirationDate: toDateInputValue(row.expirationDate),
@@ -51,7 +54,7 @@ export default function EditCertificationPage(): React.JSX.Element {
   const { onSubmit, busy } = useResourceFormSubmit({
     methods,
     mutateAsync: (payload: CertificationFormValues) =>
-      updateMutation.mutateAsync({ id, data: payload }),
+      updateMutation.mutateAsync({ id, data: toCertificationWirePayload(payload) }),
     toPayload: (values) => values,
     successMessage: 'Certification updated.',
     redirectTo: '/admin/certifications',

@@ -160,3 +160,46 @@ export interface ArticleCategoryRow {
   description: string | null;
   displayOrder: number;
 }
+
+/**
+ * The `coverMedia`/`author`/`category`/`tags` shapes below all come from
+ * `articleRepository.ts`'s own `ADMIN_INCLUDE` — a `select` of raw columns
+ * (`filename`, not a resolved `url`; that resolution is
+ * `toPublicMediaRefOrNull`'s job, which only the PUBLIC read path calls),
+ * so `AdminMediaRefRow` is deliberately its own type, not a reuse of
+ * `PublicMediaRef` from `publicContent.ts`.
+ */
+export interface AdminMediaRefRow {
+  id: number;
+  filename: string;
+  altText: string | null;
+  width: number | null;
+  height: number | null;
+}
+
+export interface ArticleTagRow {
+  articleId: number;
+  tagId: number;
+  tag: TagRow;
+}
+
+export interface ArticleAdminRow {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt: string | null;
+  content: string;
+  coverMediaId: number | null;
+  authorId: number;
+  categoryId: number | null;
+  status: string;
+  readingTimeMinutes: number;
+  viewCount: number;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  coverMedia: AdminMediaRefRow | null;
+  author: { id: number; name: string };
+  category: ArticleCategoryRow | null;
+  tags: ArticleTagRow[];
+}

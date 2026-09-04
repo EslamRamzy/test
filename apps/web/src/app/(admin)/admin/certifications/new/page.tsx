@@ -8,6 +8,7 @@ import { CertificationFields } from '@/features/admin/certifications/Certificati
 import { certificationsHooks } from '@/features/admin/certifications/client';
 import {
   certificationFormSchema,
+  toCertificationWirePayload,
   type CertificationFormValues,
 } from '@/features/admin/certifications/formSchema';
 import { useResourceFormSubmit } from '@/features/admin/lib/useResourceFormSubmit';
@@ -20,6 +21,7 @@ export default function NewCertificationPage(): React.JSX.Element {
       name: '',
       issuer: '',
       description: '',
+      certificateMediaId: '',
       credentialUrl: '',
       issueDate: '',
       expirationDate: '',
@@ -29,7 +31,8 @@ export default function NewCertificationPage(): React.JSX.Element {
   const createMutation = certificationsHooks.useCreate();
   const { onSubmit, busy } = useResourceFormSubmit({
     methods,
-    mutateAsync: (payload: CertificationFormValues) => createMutation.mutateAsync(payload),
+    mutateAsync: (payload: CertificationFormValues) =>
+      createMutation.mutateAsync(toCertificationWirePayload(payload)),
     toPayload: (values) => values,
     successMessage: 'Certification created.',
     redirectTo: '/admin/certifications',

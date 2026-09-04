@@ -1,19 +1,13 @@
 import type { CertificationRow } from '@portfolio/shared';
 import { createAdminResourceClient } from '@/lib/api/adminResource';
 import { createAdminResourceHooks } from '@/features/admin/lib/adminResourceHooks';
-import type { CertificationFormValues } from './formSchema';
+import type { CertificationWirePayload } from './formSchema';
 
-/**
- * `TCreate`/`TUpdate` are both the schema's `z.input` shape (dates as plain
- * `"YYYY-MM-DD"` strings, from `formSchema.ts`), not the `z.output`
- * `CertificationCreateInput`/`UpdateInput` (dates as `Date`) — a validated
- * form value already IS this wire payload, no conversion in between. One
- * type for both, same reasoning as `formSchema.ts`'s own doc.
- */
+/** `TCreate`/`TUpdate` are the WIRE shape (`z.input` of the unmodified shared schema — dates as strings, `certificateMediaId` as a real number) — `toCertificationWirePayload` is what turns a validated form value into this, called from each page's own `mutateAsync`. */
 export const certificationsClient = createAdminResourceClient<
   CertificationRow,
-  CertificationFormValues,
-  CertificationFormValues
+  CertificationWirePayload,
+  CertificationWirePayload
 >('/api/v1/admin/certifications', { reorder: true });
 
 export const certificationsHooks = createAdminResourceHooks(

@@ -5,7 +5,7 @@ import {
   type UseMutationResult,
   type UseQueryResult,
 } from '@tanstack/react-query';
-import type { AdminResourceClient } from '@/lib/api/adminResource';
+import type { AdminResourceClient, PublishActions } from '@/lib/api/adminResource';
 import type { PaginationMeta } from '@portfolio/shared';
 
 /**
@@ -103,4 +103,41 @@ export function createAdminResourceHooks<
   }
 
   return hooks;
+}
+
+export interface PublishActionHooks<TRow> {
+  usePublish(): UseMutationResult<TRow, unknown, number>;
+  useUnpublish(): UseMutationResult<TRow, unknown, number>;
+  useArchive(): UseMutationResult<TRow, unknown, number>;
+  useDuplicate(): UseMutationResult<TRow, unknown, number>;
+}
+
+/**
+ * The browser-side counterpart to `createPublishActions` (doc03 §5's
+ * publish/unpublish/archive/duplicate group), same cache-invalidation
+ * reasoning as `createAdminResourceHooks` above — used only by the three
+ * publish-workflow resources (Articles, Security Research, Projects), so
+ * it stays a separate factory rather than folded into that one.
+ */
+export function createPublishActionHooks<TRow>(
+  actions: PublishActions<TRow>,
+  resourceKey: string,
+): PublishActionHooks<TRow> {
+  function useAction(action: (id: number) => Promise<TRow>) {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: (id: number) => action(id),
+      onSuccess: (_row, id) => {
+        void queryClient.invalidateQueries({ queryKey: [resourceKey, 'list'] });
+        void queryClient.invalidateQueries({ queryKey: [resourceKey, 'item', id] });
+      },
+    });
+  }
+
+  return {
+    usePublish: () => useAction(actions.publish),
+    useUnpublish: () => useAction(actions.unpublish),
+    useArchive: () => useAction(actions.archive),
+    useDuplicate: () => useAction(actions.duplicate),
+  };
 }
