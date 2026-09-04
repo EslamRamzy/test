@@ -1,10 +1,12 @@
 import type {
   AdminOverviewDto,
   ApiFailure,
+  ApiPaginatedSuccess,
   ApiSuccess,
   AuthUser,
   ChangePasswordInput,
   LoginInput,
+  PaginationMeta,
 } from '@portfolio/shared';
 import { getApiBaseUrl } from '../config';
 import { ApiError } from './ApiError';
@@ -99,7 +101,22 @@ interface RequestOptions extends RequestInit {
   allowRefresh?: boolean;
 }
 
-async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
+/**
+ * The shared fetch-plus-single-flight-refresh core, returning the FULL
+ * parsed success envelope rather than just `data` — `request()` and
+ * `requestPaginated()` below are both thin projections of this, so the
+ * refresh/retry logic exists in exactly one place regardless of which
+ * envelope shape a given endpoint returns.
+ */
+// `R` is the whole success-envelope shape (`ApiSuccess<T>` or
+// `ApiPaginatedSuccess<T>`), not the item type — that is what lets one
+// function serve both `request` (data: T) and `requestPaginated`
+// (data: T[], plus meta) without a `T | T[]` union `.data` access neither
+// caller could narrow back down on its own.
+async function requestRaw<R extends ApiSuccess<unknown>>(
+  path: string,
+  init: RequestOptions,
+): Promise<R> {
   const { allowRefresh = true, ...rest } = init;
 
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
@@ -107,22 +124,45 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', ...rest.headers },
   });
-  const body = (await res.json()) as ApiSuccess<T> | ApiFailure;
+  const body = (await res.json()) as R | ApiFailure;
 
-  if (res.ok && body.success) return body.data;
+  if (res.ok && body.success) return body;
 
   const code = body.success ? undefined : body.error.code;
 
   if (allowRefresh && res.status === 401 && code === 'TOKEN_EXPIRED') {
     const refreshed = await refreshOnce();
     if (refreshed) {
-      return request<T>(path, { ...init, allowRefresh: false });
+      return requestRaw<R>(path, { ...init, allowRefresh: false });
     }
     redirectToExpiredLogin();
   }
 
   const message = body.success ? 'Unexpected API response shape' : body.error.message;
-  throw new ApiError(res.status, message, code);
+  const details = body.success ? undefined : body.error.details;
+  throw new ApiError(res.status, message, code, details);
+}
+
+/**
+ * Exported (Phase 8) — `lib/api/adminResource.ts`'s generic CRUD client
+ * builds every one of the ~13 modules' own typed call functions on top of
+ * these primitives, rather than each module hand-rolling its own
+ * fetch-plus-CSRF plumbing. Auth's own named functions below (`login`,
+ * `logout`, ...) still call them directly too — nothing about exporting
+ * them changes how those work.
+ */
+export async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
+  const body = await requestRaw<ApiSuccess<T>>(path, init);
+  return body.data;
+}
+
+/** Same as `request`, but for a paginated list endpoint — returns items and pagination meta together (mirrors `serverClient.ts`'s own `requestPaginated`). */
+export async function requestPaginated<T>(
+  path: string,
+  init: RequestOptions = {},
+): Promise<{ items: T[]; meta: PaginationMeta }> {
+  const body = await requestRaw<ApiPaginatedSuccess<T>>(path, init);
+  return { items: body.data, meta: body.meta };
 }
 
 /**
@@ -133,7 +173,7 @@ async function request<T>(path: string, init: RequestOptions = {}): Promise<T> {
  * `RequestOptions` is what lets a call site pass a typed input object
  * directly rather than pre-stringifying it itself.
  */
-async function mutate<T>(
+export async function mutate<T>(
   path: string,
   init: { method: string; body?: unknown; headers?: HeadersInit },
 ): Promise<T> {
