@@ -28,6 +28,18 @@ import { findByIdSafe } from '../repositories/userRepository.js';
  * Headers follow doc09 §7's table exactly: `Content-Type` from the STORED
  * value (never re-derived from the extension), `nosniff`, and
  * `Content-Disposition: attachment` for a PDF vs `inline` for an image.
+ *
+ * `Cross-Origin-Resource-Policy: cross-origin` overrides `app.ts`'s global
+ * helmet default (`same-origin`) on this route alone. That default is
+ * correct everywhere else — every other response here is JSON the API's own
+ * origin has no reason to hand another site — but decision D1 puts the web
+ * app on a *different* origin from the API on purpose, and this is the one
+ * route the web app's own `<img>`/`next/image` tags embed directly. Left at
+ * `same-origin`, a real browser blocks every such request outright
+ * (`ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`) even though the request itself
+ * succeeds — invisible in any test that only reads the HTTP status, which is
+ * exactly how this went unnoticed until a real cross-origin browser session
+ * caught it.
  */
 export const uploadsRouter: Router = Router();
 
@@ -80,6 +92,7 @@ uploadsRouter.get(
 
       res.setHeader('Content-Type', media.mimeType);
       res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
       res.setHeader(
         'Content-Disposition',
         media.mimeType === 'application/pdf' ? 'attachment' : 'inline',

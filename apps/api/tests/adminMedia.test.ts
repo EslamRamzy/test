@@ -397,6 +397,12 @@ describe('GET /uploads/:filename', () => {
     expect(adminRes.headers['content-type']).toContain('image/png');
     expect(adminRes.headers['x-content-type-options']).toBe('nosniff');
     expect(adminRes.headers['content-disposition']).toBe('inline');
+    // Overrides app.ts's site-wide `same-origin` helmet default — the web
+    // app's own `<img>`/`next/image` tags embed this exact route from a
+    // different origin (decision D1); left at `same-origin`, a real browser
+    // silently blocks the request (`ERR_BLOCKED_BY_RESPONSE.NotSameOrigin`)
+    // even though supertest's own assertions here would all still pass.
+    expect(adminRes.headers['cross-origin-resource-policy']).toBe('cross-origin');
   });
 
   it('serves a file once its owning project is published, unauthenticated, with a PDF getting Content-Disposition: attachment', async () => {

@@ -159,7 +159,7 @@ on render — client-side sanitisation is decoration.
 | Path traversal | The original name never touches the filesystem path; the destination is a fixed directory joined with the generated name and re-checked with `path.resolve().startsWith(UPLOAD_DIR)` |
 | Image re-encode | `sharp` re-encodes and strips EXIF (removes GPS/camera metadata and any polyglot payload) |
 | Storage | `/data/uploads`, outside the web roots, mounted `noexec` where possible |
-| Serving | Through a route that sets `Content-Type` from the stored value, `X-Content-Type-Options: nosniff`, `Content-Disposition: inline` for images / `attachment` for PDFs |
+| Serving | Through a route that sets `Content-Type` from the stored value, `X-Content-Type-Options: nosniff`, `Content-Disposition: inline` for images / `attachment` for PDFs, and `Cross-Origin-Resource-Policy: cross-origin` — this route alone overrides §2's site-wide `same-origin` default, because decision D1 puts the web app on a different origin than the API on purpose and this is the one resource that origin embeds directly (`<img>`/`next/image`) |
 | SVG | **Rejected.** SVG is an XSS vector (it can carry `<script>`) and is not worth the risk here |
 | Access | Upload requires `ADMIN`; reads are public but only for files referenced by published content |
 | Storage exhaustion | Upload rate limit + a total-storage check before write |
