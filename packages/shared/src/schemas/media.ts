@@ -23,10 +23,18 @@ export const mediaUploadFieldsSchema = z
   .strict();
 export type MediaUploadFields = z.infer<typeof mediaUploadFieldsSchema>;
 
-/** `PATCH /admin/media/:id` — alt text is the only field an admin can revise after upload; every other column is derived from the file itself at upload time. */
+/**
+ * `PATCH /admin/media/:id` — doc03 §5's own documented shape: "alt text,
+ * kind". Every other column is derived from the file itself at upload time
+ * and is never revised after the fact. Both fields are optional (a caller
+ * updates just the one it means to change) — `altText` is additionally
+ * nullable, since clearing it back to "no alt text" is a real, distinct
+ * action from leaving it untouched (an absent key vs. an explicit `null`).
+ */
 export const mediaUpdateSchema = z
   .object({
-    altText: z.string().trim().max(300).nullable(),
+    altText: z.string().trim().max(300).nullable().optional(),
+    kind: z.enum(MEDIA_KINDS).optional(),
   })
   .strict();
 export type MediaUpdateInput = z.infer<typeof mediaUpdateSchema>;

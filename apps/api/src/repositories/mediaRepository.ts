@@ -1,6 +1,7 @@
 import type { MediaKind, MediaUsageRef } from '@portfolio/shared';
 import { prisma } from '../config/prisma.js';
 import type { PrismaClientOrTx } from '../config/prisma.js';
+import { stripUndefined } from '../lib/stripUndefined.js';
 
 /**
  * The media library's repository (doc07 §3, doc09 §7). Unlike the other 13
@@ -72,12 +73,14 @@ export function create(data: CreateMediaInput, client: PrismaClientOrTx = prisma
   return client.media.create({ data });
 }
 
-export function updateAltText(
-  id: number,
-  altText: string | null,
-  client: PrismaClientOrTx = prisma,
-) {
-  return client.media.update({ where: { id }, data: { altText } });
+export interface UpdateMediaInput {
+  altText?: string | null | undefined;
+  kind?: MediaKind | undefined;
+}
+
+/** `PATCH /admin/media/:id` — doc03's own documented shape ("alt text, kind"): altText and/or kind, either independently updatable. */
+export function update(id: number, data: UpdateMediaInput, client: PrismaClientOrTx = prisma) {
+  return client.media.update({ where: { id }, data: stripUndefined(data) });
 }
 
 export async function remove(id: number, client: PrismaClientOrTx = prisma): Promise<void> {

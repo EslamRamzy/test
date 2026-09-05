@@ -15,7 +15,7 @@ import {
   useMediaItem,
   useMediaList,
   useRemoveMedia,
-  useUpdateMediaAltText,
+  useUpdateMedia,
   useUploadMedia,
 } from '@/features/admin/media/client';
 
@@ -73,18 +73,32 @@ function MediaCard({ item }: { item: AdminMediaFullRow }): React.JSX.Element {
   const [altTextDraft, setAltTextDraft] = useState(item.altText ?? '');
   const [usageOpen, setUsageOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const updateAltText = useUpdateMediaAltText();
+  const updateMedia = useUpdateMedia();
   const removeMedia = useRemoveMedia();
 
   function saveAltText(): void {
     const trimmed = altTextDraft.trim();
-    updateAltText.mutate(
+    updateMedia.mutate(
       { id: item.id, altText: trimmed.length > 0 ? trimmed : null },
       {
         onSuccess: () => show({ message: 'Alt text saved.', variant: 'success' }),
         onError: (error) =>
           show({
             message: error instanceof ApiError ? error.message : "Couldn't save alt text.",
+            variant: 'danger',
+          }),
+      },
+    );
+  }
+
+  function changeKind(kind: MediaKind): void {
+    updateMedia.mutate(
+      { id: item.id, kind },
+      {
+        onSuccess: () => show({ message: 'Kind updated.', variant: 'success' }),
+        onError: (error) =>
+          show({
+            message: error instanceof ApiError ? error.message : "Couldn't update the kind.",
             variant: 'danger',
           }),
       },
@@ -127,10 +141,26 @@ function MediaCard({ item }: { item: AdminMediaFullRow }): React.JSX.Element {
         <p className="admin-media-library__card-name" title={item.originalName}>
           {item.originalName}
         </p>
-        <p className="small text-body-secondary mb-2">
-          {KIND_LABELS[item.kind as MediaKind] ?? item.kind} · {formatBytes(item.sizeBytes)}
-          {item.width && item.height ? ` · ${String(item.width)}×${String(item.height)}` : ''}
-        </p>
+        <div className="d-flex align-items-center gap-1 small text-body-secondary mb-2">
+          <Form.Select
+            size="sm"
+            value={item.kind}
+            onChange={(event) => changeKind(event.target.value as MediaKind)}
+            disabled={updateMedia.isPending}
+            aria-label={`Kind for ${item.originalName}`}
+            className="w-auto"
+          >
+            {MEDIA_KINDS.map((kind) => (
+              <option key={kind} value={kind}>
+                {KIND_LABELS[kind]}
+              </option>
+            ))}
+          </Form.Select>
+          <span>
+            · {formatBytes(item.sizeBytes)}
+            {item.width && item.height ? ` · ${String(item.width)}×${String(item.height)}` : ''}
+          </span>
+        </div>
 
         <Form.Group className="mb-2" controlId={`media-alt-${String(item.id)}`}>
           <Form.Label className="small">Alt text</Form.Label>
@@ -146,7 +176,7 @@ function MediaCard({ item }: { item: AdminMediaFullRow }): React.JSX.Element {
               size="sm"
               variant="outline-secondary"
               onClick={saveAltText}
-              disabled={updateAltText.isPending || altTextDraft === (item.altText ?? '')}
+              disabled={updateMedia.isPending || altTextDraft === (item.altText ?? '')}
             >
               Save
             </Button>

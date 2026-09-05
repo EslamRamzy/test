@@ -120,17 +120,21 @@ export async function read(id: number) {
   return { media, usage };
 }
 
-export async function update(id: number, altText: string | null, actorId: number) {
+export async function update(id: number, data: mediaRepository.UpdateMediaInput, actorId: number) {
   return prisma.$transaction(async (tx) => {
     const existing = await mediaRepository.findById(id, tx);
     if (!existing) throw new NotFoundError('Media not found');
-    const row = await mediaRepository.updateAltText(id, altText, tx);
+    const row = await mediaRepository.update(id, data, tx);
     await auditLogRepository.record(
       { userId: actorId, action: 'MEDIA_UPDATE', entityType: 'MEDIA', entityId: id },
       tx,
     );
     return row;
   });
+}
+
+export function usage(id: number) {
+  return mediaRepository.findUsage(id);
 }
 
 /** Blocked while referenced anywhere (doc09 §7) — the usage check runs BEFORE the delete, never left for a foreign-key error to surface as a generic 500. */

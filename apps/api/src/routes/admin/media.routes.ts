@@ -47,6 +47,18 @@ mediaRouter.get(
   mediaController.read,
 );
 
+// doc03 §5's own documented path (`GET .../:id/usages`) — a dedicated
+// endpoint, separate from `read` above (which already embeds the same
+// usage list for the frontend's one-request convenience; this exists so
+// the documented API surface itself is complete even where the admin UI
+// doesn't need a second round trip for it).
+mediaRouter.get(
+  '/:id/usages',
+  authorize('media:read'),
+  validate({ params: idParamSchema }),
+  mediaController.usage,
+);
+
 mediaRouter.patch(
   '/:id',
   csrfProtection,

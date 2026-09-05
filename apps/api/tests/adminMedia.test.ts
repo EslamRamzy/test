@@ -247,6 +247,43 @@ describe('/api/v1/admin/media', () => {
     createdMediaIds.push(media.id);
   });
 
+  it('reclassifies kind via PATCH, independent of alt text, and exposes usage via the dedicated /usages endpoint', async () => {
+    const { cookie, ip, csrfToken } = await loginAsAdmin(app, ORIGIN);
+    const uploadRes = await request(app)
+      .post('/api/v1/admin/media')
+      .set('X-Forwarded-For', ip)
+      .set('Origin', ORIGIN)
+      .set('Cookie', cookie)
+      .set('X-CSRF-Token', csrfToken)
+      .field('kind', 'OTHER')
+      .attach('file', await pngFixture(9, 9), { filename: 'reclassify.png' });
+    const media = (uploadRes.body as { data: { id: number; kind: string } }).data;
+    expect(media.kind).toBe('OTHER');
+    createdMediaIds.push(media.id);
+
+    const patchRes = await request(app)
+      .patch(`/api/v1/admin/media/${String(media.id)}`)
+      .set('X-Forwarded-For', ip)
+      .set('Origin', ORIGIN)
+      .set('Cookie', cookie)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ kind: 'PROJECT_COVER' });
+    expect(patchRes.status).toBe(200);
+    expect((patchRes.body as { data: { kind: string; altText: string | null } }).data.kind).toBe(
+      'PROJECT_COVER',
+    );
+    expect(
+      (patchRes.body as { data: { kind: string; altText: string | null } }).data.altText,
+    ).toBeNull();
+
+    const usagesRes = await request(app)
+      .get(`/api/v1/admin/media/${String(media.id)}/usages`)
+      .set('X-Forwarded-For', ip)
+      .set('Cookie', cookie);
+    expect(usagesRes.status).toBe(200);
+    expect((usagesRes.body as { data: unknown[] }).data).toEqual([]);
+  });
+
   it('strips EXIF metadata after re-encoding — verified on the actually-served bytes', async () => {
     const { cookie, ip, csrfToken } = await loginAsAdmin(app, ORIGIN);
     const original = await jpegFixtureWithExif();

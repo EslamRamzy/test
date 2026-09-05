@@ -65,12 +65,17 @@ async function read(req: Request, res: Response, next: NextFunction): Promise<vo
 async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
   try {
     const body = req.body as MediaUpdateInput;
-    const row = await mediaService.update(
-      Number(req.params['id']),
-      body.altText,
-      requireActorId(req),
-    );
+    const row = await mediaService.update(Number(req.params['id']), body, requireActorId(req));
     sendSuccess(res, row);
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function usage(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const rows = await mediaService.usage(Number(req.params['id']));
+    sendSuccess(res, rows);
   } catch (error) {
     next(error);
   }
@@ -85,4 +90,4 @@ async function remove(req: Request, res: Response, next: NextFunction): Promise<
   }
 }
 
-export const mediaController = { upload, list, read, update, remove };
+export const mediaController = { upload, list, read, update, remove, usage };

@@ -72,18 +72,29 @@ function upload(input: UploadMediaInput): Promise<AdminMediaFullRow> {
   return mutateFormData<AdminMediaFullRow>(BASE_PATH, formData);
 }
 
-function updateAltText(id: number, altText: string | null): Promise<AdminMediaFullRow> {
+export interface UpdateMediaPatch {
+  altText?: string | null;
+  kind?: MediaKind;
+}
+
+/** `PATCH /admin/media/:id` — doc03 §5's documented shape: alt text and/or kind, either independently revisable. */
+function update(id: number, patch: UpdateMediaPatch): Promise<AdminMediaFullRow> {
   return mutate<AdminMediaFullRow>(`${BASE_PATH}/${String(id)}`, {
     method: 'PATCH',
-    body: { altText },
+    body: patch,
   });
+}
+
+/** `GET /admin/media/:id/usages` — the dedicated endpoint doc03 §5 documents; `read()`'s own `{media, usage}` shape already covers the admin UI's needs, so this is mostly for API-contract completeness. */
+function usages(id: number): Promise<MediaUsageRef[]> {
+  return request(`${BASE_PATH}/${String(id)}/usages`);
 }
 
 async function remove(id: number): Promise<void> {
   await mutate<{ deleted: boolean }>(`${BASE_PATH}/${String(id)}`, { method: 'DELETE' });
 }
 
-export const mediaClient = { list, read, upload, updateAltText, remove };
+export const mediaClient = { list, read, upload, update, usages, remove };
 
 export function useMediaList(
   params: MediaListParams,
@@ -109,14 +120,14 @@ export function useUploadMedia(): UseMutationResult<AdminMediaFullRow, unknown, 
   });
 }
 
-export function useUpdateMediaAltText(): UseMutationResult<
+export function useUpdateMedia(): UseMutationResult<
   AdminMediaFullRow,
   unknown,
-  { id: number; altText: string | null }
+  { id: number } & UpdateMediaPatch
 > {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, altText }) => updateAltText(id, altText),
+    mutationFn: ({ id, ...patch }) => update(id, patch),
     onSuccess: (_row, variables) => {
       void queryClient.invalidateQueries({ queryKey: [RESOURCE_KEY, 'list'] });
       void queryClient.invalidateQueries({ queryKey: [RESOURCE_KEY, 'item', variables.id] });
