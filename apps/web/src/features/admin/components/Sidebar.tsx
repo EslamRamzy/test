@@ -13,12 +13,10 @@ import { useOverview } from '@/features/admin/hooks/useOverview';
  * link on the Settings page instead (same "closest-fit module, not a new
  * nav entry" pattern as Skill Categories living under Skills).
  *
- * `enabled: false` remains only on Messages — Phase 9 shipped Media's own
- * `/admin/media` library (doc07 §3), flipping its item to `true` below;
- * Messages is Phase 10's scope (Contact + messages) and was never in this
- * phase's task list, so linking to it today would 404. Flip an item's
- * `enabled` to `true` in the same commit that ships its route, nothing else
- * here needs to change.
+ * Every item is `enabled: true` now — Phase 10 shipped Messages' own
+ * `/admin/messages` inbox, the last module still marked "Soon". Flip an
+ * item's `enabled` to `true` in the same commit that ships its route,
+ * nothing else here needs to change.
  */
 const NAV_ITEMS = [
   { label: 'Dashboard', href: '/admin', icon: 'bi-speedometer2', enabled: true },
@@ -42,7 +40,7 @@ const NAV_ITEMS = [
   { label: 'Education', href: '/admin/education', icon: 'bi-mortarboard', enabled: true },
   { label: 'Timeline', href: '/admin/timeline', icon: 'bi-clock-history', enabled: true },
   { label: 'Media', href: '/admin/media', icon: 'bi-images', enabled: true },
-  { label: 'Messages', href: '/admin/messages', icon: 'bi-envelope', enabled: false },
+  { label: 'Messages', href: '/admin/messages', icon: 'bi-envelope', enabled: true },
   { label: 'Settings', href: '/admin/settings', icon: 'bi-gear', enabled: true },
   { label: 'Audit Logs', href: '/admin/audit-logs', icon: 'bi-journal-text', enabled: true },
 ] as const;

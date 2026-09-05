@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { MEDIA_KINDS, PROJECT_CATEGORIES, RESEARCH_CATEGORIES } from '../constants/content.js';
+import {
+  MEDIA_KINDS,
+  MESSAGE_STATUSES,
+  PROJECT_CATEGORIES,
+  RESEARCH_CATEGORIES,
+} from '../constants/content.js';
 import { isoDateAsDate, paginationQuerySchema, slugSchema } from './primitives.js';
 
 /**
@@ -152,3 +157,18 @@ export const mediaAdminListQuerySchema = paginationQuerySchema
   })
   .strict();
 export type MediaAdminListQuery = z.infer<typeof mediaAdminListQuerySchema>;
+
+/**
+ * `GET /admin/messages` (doc03 §5: "?status,q,page"). Not `adminListQuerySchema`:
+ * that schema's `status` is the three DRAFT/PUBLISHED/ARCHIVED editorial
+ * states every content resource shares — messages have their own, unrelated
+ * three-value status enum (`MESSAGE_STATUSES`), and `q` here searches
+ * name/email/subject/message, not a title/slug.
+ */
+export const messageAdminListQuerySchema = paginationQuerySchema
+  .extend({
+    q: z.string().trim().max(100).optional(),
+    status: z.enum(MESSAGE_STATUSES).optional(),
+  })
+  .strict();
+export type MessageAdminListQuery = z.infer<typeof messageAdminListQuerySchema>;

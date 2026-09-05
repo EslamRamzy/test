@@ -1,4 +1,5 @@
 import type { ContactInput } from '@portfolio/shared';
+import { sendContactNotification } from '../lib/mail.js';
 import * as contactMessageRepository from '../repositories/contactMessageRepository.js';
 
 export interface ContactContext {
@@ -43,6 +44,18 @@ export async function submitContact(input: ContactInput, ctx: ContactContext): P
     ipHash: ctx.ipHash,
     userAgent: ctx.userAgent,
     spamScore: 0,
+  });
+
+  // Best-effort (doc09 §8: "Email failure never fails the request; the
+  // message is already persisted") — `sendContactNotification` itself
+  // never throws (see its own header comment), so `await`ing it here only
+  // sequences the attempt, exactly like `revalidateTags` elsewhere in this
+  // codebase; it can never turn a stored submission into a failed request.
+  await sendContactNotification({
+    name: input.name,
+    email: input.email,
+    subject: input.subject ?? null,
+    message: input.message,
   });
 
   return true;

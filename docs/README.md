@@ -1,25 +1,27 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 9 of 16 complete** — the media library: a secure upload pipeline (magic-byte type
-> detection via `file-type`, never the client `Content-Type` or filename; a five-type allow-list;
-> `sharp` re-encode that auto-orients from EXIF and then strips it along with every other metadata
-> block), `GET /uploads/:filename` as the one place bytes are served (correct headers, an admin
-> session bypassing the "published content only" access rule everyone else gets), a
-> `<MediaPicker>` shared building block, and a full Media Library admin page (grid, drag-drop
-> upload, kind filter, alt-text editing, on-demand usage lookup, reference-blocked deletion). Every
-> `coverMediaId`/`certificateMediaId`/`avatarMediaId`/`resumeMediaId`/gallery-image field Phase 8
-> shipped as a plain numeric-id input — a documented gap in that phase's own report — now uses the
-> picker. Verified against a real browser and a real API: an image uploaded inline through
-> `<MediaPicker>` while creating a project renders on the published public page via `next/image`;
-> deletion is blocked while referenced and succeeds once it isn't; the profile photo is replaceable
-> from Settings; a real audit trail exists for upload/update/delete. A schema gap was fixed along
-> the way (see the phase report §4) — Security Research covers had no fitting `Media.kind` before
-> this phase; `RESEARCH_COVER` was added to the enum and the CHECK constraint. See the
+> **Status: Phase 10 of 16 complete** — contact + messages. The public contact pipeline (already
+> built in an earlier phase — validation, the 3/hour/IP rate limit, the honeypot, the timing check,
+> a generic success response regardless of outcome) gained an optional SMTP admin-notification:
+> `lib/mail.ts` builds `from`/`to`/`replyTo`/`subject` entirely through nodemailer's own structured
+> `sendMail()` fields (proven, with a raw-CRLF-in-subject test, that the header-injection defence is
+> nodemailer's own encoding, not any sanitization here), never throws, and is awaited directly after
+> the message is persisted — so a failed or unconfigured mail server can never fail a real
+> submission, verified against a REAL unreachable SMTP host, not a mock. The admin side is new: a
+> full Messages Inbox (`/admin/messages`, doc07 §3) — search + status filter, a detail pane that
+> auto-marks a message read the moment it opens, mark read/unread, archive, delete gated behind
+> typing the sender's email, and a `mailto:` reply link (no in-app reply-sending, per doc07 §3) —
+> with a complete verb-shaped audit trail (`MESSAGE_MARK_READ`/`MARK_UNREAD`/`ARCHIVE`/`DELETE`).
+> The Sidebar's Messages entry — the last of doc07 §51's 14 modules — is enabled, its unread badge
+> live from the same `useOverview()` query the Dashboard's own counters read. A real conformance gap
+> from Phase 9 was also found and fixed along the way (see the phase report §4) — the media module's
+> PATCH endpoint couldn't change `kind`, and had no dedicated usage-lookup endpoint, though doc03 §5
+> documents both. See the
+> [Phase 10 report](phases/phase-10-report.md), the
 > [Phase 9 report](phases/phase-09-report.md), the
-> [Phase 8 report](phases/phase-08-report.md), the
-> [Phase 7 report](phases/phase-07-report.md), and the
-> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 10 (Contact + messages) is
-> unblocked. No open decisions remain that block current work — see
+> [Phase 8 report](phases/phase-08-report.md), and the
+> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 11 (Search + command
+> palette) is unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
 > next phase.
@@ -55,6 +57,7 @@
 | 7 | [Admin shell](phases/phase-07-report.md) |
 | 8 | [Content management](phases/phase-08-report.md) |
 | 9 | [Media management](phases/phase-09-report.md) |
+| 10 | [Contact + messages](phases/phase-10-report.md) |
 
 ## Design
 

@@ -38,6 +38,18 @@ export function isPlaceholderSecret(value: string): boolean {
   });
 }
 
+/**
+ * An optional string field that treats an empty-string value the same as an
+ * absent one — `.env.example` ships these as `KEY=` (present, blank), and
+ * Zod's own `.optional()` only forgives a key that is missing entirely, not
+ * one present with an empty string (same reasoning as `bootstrap.ts`'s own
+ * `ADMIN_NAME` handling).
+ */
+const optionalTrimmedString = z.preprocess(
+  (value) => (value === '' ? undefined : value),
+  z.string().trim().min(1).optional(),
+);
+
 export const envSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
@@ -155,6 +167,24 @@ export const envSchema = z
       .int()
       .positive()
       .default(5 * 1024 * 1024),
+
+    // -------------------------------------------------------------------------
+    // Optional SMTP for contact-form notifications (docs/architecture/09 §8) —
+    // Phase 10. `.env.example` ships every one of these blank, and "blank" is
+    // the feature flag itself (`lib/mail.ts`'s own comment): the contact form
+    // must work identically with or without SMTP configured, so nothing here
+    // has a required-secret-style minimum length the way JWT_SECRET etc. do —
+    // an admin who never sets these simply never gets notification emails,
+    // which is a valid, supported configuration, not a misconfiguration.
+    // -------------------------------------------------------------------------
+    EMAIL_HOST: optionalTrimmedString,
+    EMAIL_PORT: z.preprocess(
+      (value) => (value === '' ? undefined : value),
+      z.coerce.number().int().positive().optional(),
+    ),
+    EMAIL_USER: optionalTrimmedString,
+    EMAIL_PASSWORD: optionalTrimmedString,
+    EMAIL_FROM: optionalTrimmedString,
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV !== 'production') return;

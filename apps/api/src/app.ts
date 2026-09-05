@@ -20,6 +20,7 @@ import { assessmentsRouter } from './routes/admin/assessments.routes.js';
 import { auditLogsRouter } from './routes/admin/auditLogs.routes.js';
 import { findingsRouter } from './routes/admin/findings.routes.js';
 import { mediaRouter } from './routes/admin/media.routes.js';
+import { messagesRouter } from './routes/admin/messages.routes.js';
 import { overviewRouter } from './routes/admin/overview.routes.js';
 import { profileRouter as adminProfileRouter } from './routes/admin/profile.routes.js';
 import { projectsRouter as adminProjectsRouter } from './routes/admin/projects.routes.js';
@@ -161,6 +162,7 @@ export function createApp(): Express {
   app.use('/api/v1/admin/audit-logs', auditLogsRouter);
   app.use('/api/v1/admin/analytics', analyticsAdminRouter);
   app.use('/api/v1/admin/media', mediaRouter);
+  app.use('/api/v1/admin/messages', messagesRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

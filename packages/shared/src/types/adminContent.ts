@@ -469,3 +469,18 @@ export interface AnalyticsOverviewDto {
   topArticles: AnalyticsTopContentEntry[];
   topReferrerHosts: AnalyticsReferrerHostRow[];
 }
+
+/** `GET /admin/messages` (doc03 §5, doc07 §3: "Inbox: unread/read/archived, detail pane...") — the only admin module with no `create`; rows only ever arrive via the public contact form. */
+export interface ContactMessageAdminRow {
+  id: number;
+  name: string;
+  email: string;
+  subject: string | null;
+  message: string;
+  status: string;
+  ipHash: string | null;
+  userAgent: string | null;
+  spamScore: number;
+  readAt: string | null;
+  createdAt: string;
+}

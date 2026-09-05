@@ -70,6 +70,40 @@ describe('envSchema', () => {
     expect(result.success).toBe(false);
   });
 
+  it('treats blank EMAIL_* values (an untouched .env.example copy) as unset, not an error', () => {
+    const result = envSchema.safeParse(
+      baseEnv({
+        EMAIL_HOST: '',
+        EMAIL_PORT: '',
+        EMAIL_USER: '',
+        EMAIL_PASSWORD: '',
+        EMAIL_FROM: '',
+      }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.EMAIL_HOST).toBeUndefined();
+      expect(result.data.EMAIL_PORT).toBeUndefined();
+    }
+  });
+
+  it('accepts a fully configured SMTP setup, coercing EMAIL_PORT to a number', () => {
+    const result = envSchema.safeParse(
+      baseEnv({
+        EMAIL_HOST: 'smtp.example.com',
+        EMAIL_PORT: '587',
+        EMAIL_USER: 'admin@example.com',
+        EMAIL_PASSWORD: 'app-password',
+        EMAIL_FROM: 'noreply@example.com',
+      }),
+    );
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.EMAIL_HOST).toBe('smtp.example.com');
+      expect(result.data.EMAIL_PORT).toBe(587);
+    }
+  });
+
   it('rejects a JWT_SECRET under 32 characters', () => {
     const result = envSchema.safeParse(baseEnv({ JWT_SECRET: 'too-short' }));
     expect(result.success).toBe(false);

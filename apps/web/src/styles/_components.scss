@@ -2100,3 +2100,153 @@ $admin-topbar-height: 56px;
   padding-left: var(--space-4);
   font-size: 0.85rem;
 }
+
+// =============================================================================
+// Phase 10 — /admin/messages (docs/architecture/07 §3). List + detail pane,
+// side by side from `lg` up; below that the detail pane covers the list
+// entirely while a message is open (doc07 §1's own off-canvas convention),
+// closed by the pane's own back button.
+// =============================================================================
+
+.admin-messages-inbox__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.admin-messages-inbox__search {
+  max-width: 320px;
+}
+
+.admin-messages-inbox__status-filter {
+  max-width: 200px;
+}
+
+.admin-messages-inbox__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.admin-messages-inbox__list {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.admin-messages-inbox__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.admin-messages-inbox__row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 100%;
+  padding: var(--space-3);
+  text-align: start;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: var(--color-bg);
+  }
+}
+
+.admin-messages-inbox__row--active {
+  background: var(--color-bg);
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.admin-messages-inbox__row--unread {
+  .admin-messages-inbox__row-name,
+  .admin-messages-inbox__row-subject {
+    font-weight: 600;
+  }
+}
+
+.admin-messages-inbox__row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.admin-messages-inbox__row-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-messages-inbox__row-subject {
+  overflow: hidden;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-messages-inbox__row-date {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.admin-messages-inbox__detail {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.admin-messages-inbox__detail--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.admin-messages-inbox__detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.admin-messages-inbox__detail-body {
+  margin-bottom: var(--space-4);
+  white-space: pre-wrap;
+}
+
+.admin-messages-inbox__detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.admin-messages-inbox__detail-close {
+  flex-shrink: 0;
+}
+
+@media (max-width: 767.98px) {
+  .admin-messages-inbox__layout {
+    grid-template-columns: 1fr;
+  }
+
+  // The detail pane is a full replacement for the list on narrow viewports,
+  // not a second column beneath it — the list's own toggle back to it is
+  // `.admin-messages-inbox__detail-close` (`d-lg-none` in the markup).
+  .admin-messages-inbox__layout--detail-open .admin-messages-inbox__list {
+    display: none;
+  }
+}

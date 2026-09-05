@@ -3,6 +3,7 @@ import {
   adminListQuerySchema,
   articleListQuerySchema,
   mediaAdminListQuerySchema,
+  messageAdminListQuerySchema,
   projectListQuerySchema,
   researchAdminListQuerySchema,
   searchQuerySchema,
@@ -152,5 +153,21 @@ describe('mediaAdminListQuerySchema', () => {
 
   it('rejects a status param — media has no draft/published workflow', () => {
     expect(() => mediaAdminListQuerySchema.parse({ status: 'DRAFT' })).toThrow();
+  });
+});
+
+describe('messageAdminListQuerySchema', () => {
+  it('applies defaults with no query params', () => {
+    expect(messageAdminListQuerySchema.parse({})).toEqual({ page: 1, pageSize: 12 });
+  });
+
+  it('accepts a search term and a status filter', () => {
+    const result = messageAdminListQuerySchema.parse({ q: 'project inquiry', status: 'UNREAD' });
+    expect(result.q).toBe('project inquiry');
+    expect(result.status).toBe('UNREAD');
+  });
+
+  it('rejects a status outside MESSAGE_STATUSES', () => {
+    expect(() => messageAdminListQuerySchema.parse({ status: 'DRAFT' })).toThrow();
   });
 });
