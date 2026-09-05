@@ -42,7 +42,7 @@ CREATE TABLE "media" (
     "checksum_sha256" TEXT NOT NULL,
     "storage_path" TEXT NOT NULL,
     "alt_text" TEXT,
-    "kind" TEXT NOT NULL CHECK ("kind" IN ('AVATAR', 'PROJECT_COVER', 'SCREENSHOT', 'CERTIFICATE', 'ARTICLE_COVER', 'RESUME', 'OTHER')),
+    "kind" TEXT NOT NULL CHECK ("kind" IN ('AVATAR', 'PROJECT_COVER', 'SCREENSHOT', 'CERTIFICATE', 'ARTICLE_COVER', 'RESEARCH_COVER', 'RESUME', 'OTHER')),
     "uploaded_by" INTEGER,
     "created_at" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT "media_uploaded_by_fkey" FOREIGN KEY ("uploaded_by") REFERENCES "users" ("id") ON DELETE SET NULL ON UPDATE CASCADE

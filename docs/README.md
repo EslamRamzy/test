@@ -1,21 +1,24 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 8 of 16 complete** — full admin CRUD for all 13 content modules (technologies,
-> skills/categories, certifications, experience, education, timeline, social links, tags, article
-> categories, articles, security research, projects, plus settings/profile/audit-log/analytics
-> screens), a publish workflow with readiness checks on Articles/Security Research/Projects,
-> drag-free reordering, the project tabbed editor (overview, case-study sections built from a
-> visible/hidden section manager, technologies, gallery images, security assessments/tests/findings,
-> SEO), a markdown editor, tags/categories, and on-demand revalidation on publish. Verified against a
-> real browser and a real API: a project, an article and a security research entry were created and
-> published entirely through `/admin` and rendered correctly on the public site, with a real audit
-> trail recorded at every step. A generic `withFieldOverrides` type bug was found and fixed along the
-> way (see the phase report §4) — it silently kept a swapped-out field's *original* type, which
-> happened to be harmless for date-only overrides but broke for Certifications' numeric
-> `certificateMediaId`. See the [Phase 8 report](phases/phase-08-report.md), the
-> [Phase 7 report](phases/phase-07-report.md), the
-> [Phase 6 report](phases/phase-06-report.md), and the
-> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 9 (Media management) is
+> **Status: Phase 9 of 16 complete** — the media library: a secure upload pipeline (magic-byte type
+> detection via `file-type`, never the client `Content-Type` or filename; a five-type allow-list;
+> `sharp` re-encode that auto-orients from EXIF and then strips it along with every other metadata
+> block), `GET /uploads/:filename` as the one place bytes are served (correct headers, an admin
+> session bypassing the "published content only" access rule everyone else gets), a
+> `<MediaPicker>` shared building block, and a full Media Library admin page (grid, drag-drop
+> upload, kind filter, alt-text editing, on-demand usage lookup, reference-blocked deletion). Every
+> `coverMediaId`/`certificateMediaId`/`avatarMediaId`/`resumeMediaId`/gallery-image field Phase 8
+> shipped as a plain numeric-id input — a documented gap in that phase's own report — now uses the
+> picker. Verified against a real browser and a real API: an image uploaded inline through
+> `<MediaPicker>` while creating a project renders on the published public page via `next/image`;
+> deletion is blocked while referenced and succeeds once it isn't; the profile photo is replaceable
+> from Settings; a real audit trail exists for upload/update/delete. A schema gap was fixed along
+> the way (see the phase report §4) — Security Research covers had no fitting `Media.kind` before
+> this phase; `RESEARCH_COVER` was added to the enum and the CHECK constraint. See the
+> [Phase 9 report](phases/phase-09-report.md), the
+> [Phase 8 report](phases/phase-08-report.md), the
+> [Phase 7 report](phases/phase-07-report.md), and the
+> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 10 (Contact + messages) is
 > unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
@@ -51,6 +54,7 @@
 | 6 | [Public website](phases/phase-06-report.md) |
 | 7 | [Admin shell](phases/phase-07-report.md) |
 | 8 | [Content management](phases/phase-08-report.md) |
+| 9 | [Media management](phases/phase-09-report.md) |
 
 ## Design
 

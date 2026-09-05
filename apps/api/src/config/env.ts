@@ -140,6 +140,21 @@ export const envSchema = z
       .enum(['true', 'false'])
       .default('false')
       .transform((value) => value === 'true'),
+
+    // -------------------------------------------------------------------------
+    // Uploads (docs/architecture/09 §7) — Phase 9. Relative to `process.cwd()`
+    // (`apps/api/` locally, `/app` in the container), same convention as
+    // `bootstrap.ts`'s own `bootstrapEnvSchema` copy of this variable (that
+    // script parses `process.env` directly rather than importing this module,
+    // since it must run before `prisma generate` in some flows — see its
+    // header comment). Both must be kept in sync by hand.
+    // -------------------------------------------------------------------------
+    UPLOAD_DIR: z.string().trim().min(1).default('./uploads'),
+    MAX_UPLOAD_BYTES: z.coerce
+      .number()
+      .int()
+      .positive()
+      .default(5 * 1024 * 1024),
   })
   .superRefine((value, ctx) => {
     if (value.NODE_ENV !== 'production') return;

@@ -6,6 +6,7 @@ export * from './schemas/certification.js';
 export * from './schemas/contact.js';
 export * from './schemas/education.js';
 export * from './schemas/experience.js';
+export * from './schemas/media.js';
 export * from './schemas/primitives.js';
 export * from './schemas/profile.js';
 export * from './schemas/project.js';

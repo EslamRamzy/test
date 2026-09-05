@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   adminListQuerySchema,
   articleListQuerySchema,
+  mediaAdminListQuerySchema,
   projectListQuerySchema,
   researchAdminListQuerySchema,
   searchQuerySchema,
@@ -131,5 +132,25 @@ describe('researchAdminListQuerySchema', () => {
     expect(researchAdminListQuerySchema.parse({ status: 'ARCHIVED' })).toMatchObject({
       status: 'ARCHIVED',
     });
+  });
+});
+
+describe('mediaAdminListQuerySchema', () => {
+  it('applies defaults with no query params', () => {
+    expect(mediaAdminListQuerySchema.parse({})).toEqual({ page: 1, pageSize: 12 });
+  });
+
+  it('accepts a search term and a kind filter', () => {
+    const result = mediaAdminListQuerySchema.parse({ q: 'screenshot', kind: 'PROJECT_COVER' });
+    expect(result.q).toBe('screenshot');
+    expect(result.kind).toBe('PROJECT_COVER');
+  });
+
+  it('rejects a kind outside MEDIA_KINDS', () => {
+    expect(() => mediaAdminListQuerySchema.parse({ kind: 'BOGUS' })).toThrow();
+  });
+
+  it('rejects a status param — media has no draft/published workflow', () => {
+    expect(() => mediaAdminListQuerySchema.parse({ status: 'DRAFT' })).toThrow();
   });
 });

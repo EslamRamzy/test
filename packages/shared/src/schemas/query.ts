@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PROJECT_CATEGORIES, RESEARCH_CATEGORIES } from '../constants/content.js';
+import { MEDIA_KINDS, PROJECT_CATEGORIES, RESEARCH_CATEGORIES } from '../constants/content.js';
 import { isoDateAsDate, paginationQuerySchema, slugSchema } from './primitives.js';
 
 /**
@@ -136,3 +136,19 @@ export const auditLogQuerySchema = paginationQuerySchema
   })
   .strict();
 export type AuditLogQuery = z.infer<typeof auditLogQuerySchema>;
+
+/**
+ * `GET /admin/media` — search over `originalName`/`altText`, filter by
+ * `kind`. Not built on `adminListQuerySchema`: media has no draft/published
+ * `status` to filter by, and `q`'s target columns differ from every other
+ * resource's title/slug search — a fresh `.extend()` off the bare pagination
+ * schema keeps `.strict()` from having to explain away a `status` param this
+ * resource can never receive.
+ */
+export const mediaAdminListQuerySchema = paginationQuerySchema
+  .extend({
+    q: z.string().trim().max(100).optional(),
+    kind: z.enum(MEDIA_KINDS).optional(),
+  })
+  .strict();
+export type MediaAdminListQuery = z.infer<typeof mediaAdminListQuerySchema>;

@@ -2,19 +2,24 @@
 
 import type { ProjectAdminRow } from '@portfolio/shared';
 import { useState } from 'react';
+import { MediaPicker } from '@/features/admin/components/MediaPicker';
 import { useToast } from '@/features/admin/components/ToastProvider';
+import { getApiBaseUrl } from '@/lib/config';
 import { useAddProjectImage, useRemoveProjectImage, useReorderProjectImages } from './client';
+
+function mediaUrl(filename: string): string {
+  return `${getApiBaseUrl()}/uploads/${filename}`;
+}
 
 /**
  * `POST/DELETE/PATCH .../images*` (doc07 §3's Media tab) — the cover image
  * itself lives on the Overview tab (`coverMediaId`, part of the main
  * form); this panel is the gallery repeater, doc03 §5's own separate
- * per-image endpoints. No media picker (Phase 9) — same numeric-id stopgap
- * as `coverMediaId` everywhere else in this module.
+ * per-image endpoints.
  */
 export function ProjectMediaPanel({ project }: { project: ProjectAdminRow }): React.JSX.Element {
   const { show } = useToast();
-  const [mediaId, setMediaId] = useState('');
+  const [pendingMediaId, setPendingMediaId] = useState<number | null>(null);
   const [caption, setCaption] = useState('');
   const addImage = useAddProjectImage();
   const removeImage = useRemoveProjectImage();
@@ -22,17 +27,20 @@ export function ProjectMediaPanel({ project }: { project: ProjectAdminRow }): Re
   const images = project.images;
 
   function handleAdd(): void {
-    const parsed = Number(mediaId);
-    if (!mediaId.trim() || !Number.isInteger(parsed) || parsed <= 0) {
-      show({ message: 'Enter a valid media id first.', variant: 'danger' });
+    if (!pendingMediaId) {
+      show({ message: 'Choose an image first.', variant: 'danger' });
       return;
     }
     addImage.mutate(
-      { id: project.id, mediaId: parsed, ...(caption.trim() ? { caption: caption.trim() } : {}) },
+      {
+        id: project.id,
+        mediaId: pendingMediaId,
+        ...(caption.trim() ? { caption: caption.trim() } : {}),
+      },
       {
         onSuccess: () => {
           show({ message: 'Image added.', variant: 'success' });
-          setMediaId('');
+          setPendingMediaId(null);
           setCaption('');
         },
         onError: () => show({ message: 'Couldn’t add that image.', variant: 'danger' }),
@@ -92,9 +100,15 @@ export function ProjectMediaPanel({ project }: { project: ProjectAdminRow }): Re
                   <span className="bi bi-chevron-down" aria-hidden="true" />
                 </button>
               </div>
-              <div className="admin-sortable-list__content flex-grow-1 d-flex justify-content-between align-items-center">
-                <span>
-                  Media #{image.mediaId}
+              <div className="admin-sortable-list__content flex-grow-1 d-flex justify-content-between align-items-center gap-2">
+                <span className="d-flex align-items-center gap-2">
+                  <img
+                    src={mediaUrl(image.media.filename)}
+                    alt=""
+                    width={40}
+                    height={40}
+                    style={{ objectFit: 'cover', borderRadius: 'var(--radius-sm)' }}
+                  />
                   {image.caption ? ` — ${image.caption}` : ''}
                 </span>
                 <button
@@ -110,36 +124,29 @@ export function ProjectMediaPanel({ project }: { project: ProjectAdminRow }): Re
         </ul>
       )}
 
-      <div className="row g-2" style={{ maxWidth: '32rem' }}>
-        <div className="col-4">
-          <input
-            className="form-control"
-            placeholder="Media id"
-            inputMode="numeric"
-            value={mediaId}
-            onChange={(event) => setMediaId(event.target.value)}
-            aria-label="New image media id"
-          />
-        </div>
-        <div className="col-6">
-          <input
-            className="form-control"
-            placeholder="Caption (optional)"
-            value={caption}
-            onChange={(event) => setCaption(event.target.value)}
-            aria-label="New image caption"
-          />
-        </div>
-        <div className="col-2">
-          <button
-            type="button"
-            className="btn btn-outline-secondary w-100"
-            onClick={handleAdd}
-            disabled={addImage.isPending}
-          >
-            <span className="bi bi-plus-lg" aria-hidden="true" />
-          </button>
-        </div>
+      <div className="d-flex flex-wrap align-items-end gap-2">
+        <MediaPicker
+          value={pendingMediaId}
+          onChange={setPendingMediaId}
+          kind="SCREENSHOT"
+          label="gallery image"
+        />
+        <input
+          className="form-control"
+          placeholder="Caption (optional)"
+          value={caption}
+          onChange={(event) => setCaption(event.target.value)}
+          aria-label="New image caption"
+          style={{ maxWidth: '16rem' }}
+        />
+        <button
+          type="button"
+          className="btn btn-outline-secondary"
+          onClick={handleAdd}
+          disabled={addImage.isPending || !pendingMediaId}
+        >
+          Add to gallery
+        </button>
       </div>
     </div>
   );

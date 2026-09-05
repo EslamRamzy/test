@@ -123,14 +123,14 @@ export const analyticsLimiter = createRateLimiter({ windowMs: 60 * 1000, limit: 
  * the doc always specified; renamed here rather than carrying a misleading
  * name into a dozen more route files.
  *
- * `upload` (20/hour) is still not created — no route exists to mount it on
- * until Phase 9 (§50: do not build ahead of need). `admin` no longer
- * qualifies for that deferral: Phase 7 is the first admin route.
  */
 export const adminLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   limit: 600,
   keyGenerator: (req: Request) => String(req.user?.id ?? 'unknown'),
 });
+
+/** `upload` — docs/architecture/09 §4: 20 / hour. Keyed by IP, like every other bucket except `admin` (the table has no "per user" note on this row). Mounted only on `POST /admin/media` — every other admin route keeps using the general `adminLimiter` bucket above it. */
+export const uploadLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, limit: 20 });
 
 export { createRateLimiter };

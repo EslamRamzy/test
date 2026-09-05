@@ -119,10 +119,20 @@ async function requestRaw<R extends ApiSuccess<unknown>>(
 ): Promise<R> {
   const { allowRefresh = true, ...rest } = init;
 
+  // A `FormData` body (the media upload endpoint's multipart request) must
+  // NEVER get an explicit `Content-Type` — the browser sets its own
+  // `multipart/form-data; boundary=...` value, which only it can compute,
+  // when `fetch` sees a `FormData` body and no such header already set.
+  // Every other call site sends a plain object through `mutate()`, already
+  // JSON-stringified into a string body by the time it reaches here.
+  const isFormDataBody = rest.body instanceof FormData;
+
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     ...rest,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', ...rest.headers },
+    headers: isFormDataBody
+      ? { ...rest.headers }
+      : { 'Content-Type': 'application/json', ...rest.headers },
   });
   const body = (await res.json()) as R | ApiFailure;
 
@@ -183,6 +193,22 @@ export async function mutate<T>(
     method,
     headers: { [CSRF_HEADER]: csrfToken, ...headers },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+}
+
+/**
+ * The one admin endpoint whose body is a real file, not JSON — the media
+ * upload (Phase 9). Sibling of `mutate()` above rather than a case that
+ * function handles: `mutate` always `JSON.stringify`s its body, which would
+ * turn a `FormData` into the useless string `"[object FormData]"`. The CSRF
+ * header is still required, same as every other state-changing call.
+ */
+export async function mutateFormData<T>(path: string, formData: FormData): Promise<T> {
+  const csrfToken = await ensureCsrfToken();
+  return request<T>(path, {
+    method: 'POST',
+    headers: { [CSRF_HEADER]: csrfToken },
+    body: formData,
   });
 }
 

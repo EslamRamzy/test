@@ -1,7 +1,8 @@
 'use client';
 
 import { PROJECT_CATEGORIES } from '@portfolio/shared';
-import { useFieldArray, useFormContext } from 'react-hook-form';
+import { Controller, useFieldArray, useFormContext } from 'react-hook-form';
+import { MediaPicker } from '@/features/admin/components/MediaPicker';
 import type { ProjectFormValues } from './formSchema';
 
 export function ProjectOverviewFields(): React.JSX.Element {
@@ -98,20 +99,21 @@ export function ProjectOverviewFields(): React.JSX.Element {
           )}
         </div>
         <div className="col-sm-6 mb-3">
-          <label htmlFor="field-coverMediaId" className="form-label">
-            Cover media id
-          </label>
-          <input
-            id="field-coverMediaId"
-            inputMode="numeric"
-            className={`form-control${errors.coverMediaId ? ' is-invalid' : ''}`}
-            {...register('coverMediaId')}
+          <span className="form-label d-block">Cover image</span>
+          <Controller
+            name="coverMediaId"
+            control={control}
+            render={({ field }) => (
+              <MediaPicker
+                value={field.value ? Number(field.value) : null}
+                onChange={(mediaId) => field.onChange(mediaId !== null ? String(mediaId) : '')}
+                kind="PROJECT_COVER"
+                label="cover image"
+              />
+            )}
           />
-          <div className="form-text">
-            The id of an existing Media row (no picker yet — Phase 9).
-          </div>
           {errors.coverMediaId && (
-            <div className="invalid-feedback d-block" role="alert">
+            <div className="text-danger small mt-1" role="alert">
               {errors.coverMediaId.message}
             </div>
           )}

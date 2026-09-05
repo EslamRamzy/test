@@ -3,18 +3,19 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 8 of 16 — content management.**
+> **Status: Phase 9 of 16 — media management.**
 > Database (Phase 2), backend foundation (Phase 3), auth (Phase 4), the full public REST API
 > (Phase 5), the full public website carrying the "Amber Signal" visual identity, the admin shell
-> (Phase 7), and now full admin CRUD for all 13 content modules: publish workflow with
-> readiness checks, reordering, the project tabbed editor (case-study sections, technologies,
-> gallery images, security assessments/tests/findings), the markdown editor, tags/categories, and
-> on-demand revalidation on publish. The source-code-free content goal is demonstrated: a project,
-> an article and a security research entry created and published entirely through `/admin` render
-> correctly on the public site, with a real audit trail for every step (verified against a real
-> browser, not simulated). Media management is Phase 9. See [`docs/`](docs/README.md), the
-> [Phase 8 report](docs/phases/phase-08-report.md), the
-> [Phase 7 report](docs/phases/phase-07-report.md), and the
+> (Phase 7), full admin CRUD for all 13 content modules (Phase 8), and now a real media library:
+> secure uploads (magic-byte type checking, `sharp` re-encode + EXIF strip, a five-type allow-list),
+> a `<MediaPicker>` used everywhere a cover image, certificate, avatar, résumé or gallery image is
+> set, usage tracking, reference-blocked deletion, and correctly-headered static serving. Every
+> numeric-media-id stopgap Phase 8 shipped is gone — cover images, certificates, the profile photo
+> and résumé are all picked from a real library today, and a project published through `/admin`
+> renders its cover on the public site through `next/image`, verified against a real browser (not
+> simulated). See [`docs/`](docs/README.md), the
+> [Phase 9 report](docs/phases/phase-09-report.md), the
+> [Phase 8 report](docs/phases/phase-08-report.md), and the
 > [redesign report](docs/design/amber-signal-redesign.md).
 
 ---

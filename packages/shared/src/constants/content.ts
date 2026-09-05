@@ -42,6 +42,7 @@ export const MEDIA_KINDS = [
   'SCREENSHOT',
   'CERTIFICATE',
   'ARTICLE_COVER',
+  'RESEARCH_COVER',
   'RESUME',
   'OTHER',
 ] as const;

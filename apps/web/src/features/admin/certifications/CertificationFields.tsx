@@ -1,20 +1,13 @@
 'use client';
 
-import { useFormContext } from 'react-hook-form';
+import { Controller, useFormContext } from 'react-hook-form';
+import { MediaPicker } from '@/features/admin/components/MediaPicker';
 import type { CertificationFormValues } from './formSchema';
 
-/**
- * `certificateMediaId` is a plain numeric id input, not a media picker —
- * doc07 §3's actual picker is Phase 9's own scope, not built yet. Still a
- * real, editable field rather than an omission: doc11's exit criterion
- * ("every field of every entity is editable from the UI") doesn't get a
- * pass just because the nicer control doesn't exist yet, and an admin who
- * already knows a `Media` row's id (from a direct API call, say) can set
- * it today.
- */
 export function CertificationFields(): React.JSX.Element {
   const {
     register,
+    control,
     formState: { errors },
   } = useFormContext<CertificationFormValues>();
 
@@ -100,20 +93,21 @@ export function CertificationFields(): React.JSX.Element {
       </div>
 
       <div className="mb-3">
-        <label htmlFor="field-certificateMediaId" className="form-label">
-          Certificate media id
-        </label>
-        <input
-          id="field-certificateMediaId"
-          inputMode="numeric"
-          className={`form-control${errors.certificateMediaId ? ' is-invalid' : ''}`}
-          {...register('certificateMediaId')}
+        <span className="form-label d-block">Certificate image</span>
+        <Controller
+          name="certificateMediaId"
+          control={control}
+          render={({ field }) => (
+            <MediaPicker
+              value={field.value ? Number(field.value) : null}
+              onChange={(mediaId) => field.onChange(mediaId !== null ? String(mediaId) : '')}
+              kind="CERTIFICATE"
+              label="certificate image"
+            />
+          )}
         />
-        <div className="form-text">
-          The id of an existing Media row for the certificate image (no picker yet — Phase 9).
-        </div>
         {errors.certificateMediaId && (
-          <div className="invalid-feedback d-block" role="alert">
+          <div className="text-danger small mt-1" role="alert">
             {errors.certificateMediaId.message}
           </div>
         )}

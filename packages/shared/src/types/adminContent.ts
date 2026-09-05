@@ -254,6 +254,27 @@ export interface AdminMediaFullRow {
   createdAt: string;
 }
 
+/**
+ * One place a `Media` row is referenced from — the media library's "usage
+ * list" (doc07 §3) and the reference-blocked-deletion check (doc09 §7) both
+ * walk the same set of relations, so this is the shape both return. `label`
+ * is the referencing entity's own title/name, resolved server-side so the
+ * UI never has to fetch each one separately just to show what it's looking
+ * at.
+ */
+export interface MediaUsageRef {
+  entityType:
+    | 'PROFILE_AVATAR'
+    | 'PROFILE_RESUME'
+    | 'PROJECT_COVER'
+    | 'PROJECT_IMAGE'
+    | 'ARTICLE_COVER'
+    | 'SECURITY_RESEARCH_COVER'
+    | 'CERTIFICATION';
+  entityId: number;
+  label: string;
+}
+
 export interface ProjectImageRow {
   id: number;
   projectId: number;

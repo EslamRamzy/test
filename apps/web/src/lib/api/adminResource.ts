@@ -14,7 +14,8 @@ import { mutate, request, requestPaginated } from './adminClient';
  * turning it into a query string, not re-validating it.
  */
 
-function buildQueryString(params: Record<string, unknown>): string {
+/** Exported for `features/admin/media/client.ts`, the one module with a hand-rolled client that still needs identical query-string building (its `create` is a file upload, not a JSON body, so it cannot use `createAdminResourceClient` itself). */
+export function buildQueryString(params: Record<string, unknown>): string {
   const search = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {
     if (value === undefined || value === null || value === '') continue;

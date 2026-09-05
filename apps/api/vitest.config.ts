@@ -52,6 +52,11 @@ export default defineConfig({
       IP_HASH_SALT: 'test-ip-hash-salt-value-not-for-real-use-0000',
       REVALIDATE_SECRET: 'test-revalidate-secret-value-not-for-real-use',
       COOKIE_DOMAIN: '.local.eslamramzy.test',
+      // Its own temp directory, same reasoning as DATABASE_URL above — a
+      // real upload test writes real files, and those must never land in
+      // apps/api/uploads/ (a developer's own local dev store) or drift
+      // between test runs. `.tmp/` is already gitignored.
+      UPLOAD_DIR: './.tmp/vitest-uploads',
     },
     coverage: {
       provider: 'v8',

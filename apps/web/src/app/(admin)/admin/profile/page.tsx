@@ -1,8 +1,9 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { EntityForm } from '@/features/admin/components/EntityForm';
+import { MediaPicker } from '@/features/admin/components/MediaPicker';
 import { useEditResourceForm } from '@/features/admin/lib/useEditResourceForm';
 import { useResourceFormSubmit } from '@/features/admin/lib/useResourceFormSubmit';
 import { useProfile, useUpdateProfile } from '@/features/admin/profile/client';
@@ -63,6 +64,7 @@ export default function ProfilePage(): React.JSX.Element {
 
   const {
     register,
+    control,
     formState: { errors },
   } = methods;
 
@@ -139,34 +141,41 @@ export default function ProfilePage(): React.JSX.Element {
 
         <div className="row">
           <div className="col-sm-6 mb-3">
-            <label htmlFor="field-avatarMediaId" className="form-label">
-              Avatar media id
-            </label>
-            <input
-              id="field-avatarMediaId"
-              inputMode="numeric"
-              className={`form-control${errors.avatarMediaId ? ' is-invalid' : ''}`}
-              {...register('avatarMediaId')}
+            <span className="form-label d-block">Avatar</span>
+            <Controller
+              name="avatarMediaId"
+              control={control}
+              render={({ field }) => (
+                <MediaPicker
+                  value={field.value ? Number(field.value) : null}
+                  onChange={(mediaId) => field.onChange(mediaId !== null ? String(mediaId) : '')}
+                  kind="AVATAR"
+                  label="avatar"
+                />
+              )}
             />
-            <div className="form-text">No picker yet — Phase 9.</div>
             {errors.avatarMediaId && (
-              <div className="invalid-feedback d-block" role="alert">
+              <div className="text-danger small mt-1" role="alert">
                 {errors.avatarMediaId.message}
               </div>
             )}
           </div>
           <div className="col-sm-6 mb-3">
-            <label htmlFor="field-resumeMediaId" className="form-label">
-              Resume media id
-            </label>
-            <input
-              id="field-resumeMediaId"
-              inputMode="numeric"
-              className={`form-control${errors.resumeMediaId ? ' is-invalid' : ''}`}
-              {...register('resumeMediaId')}
+            <span className="form-label d-block">Résumé</span>
+            <Controller
+              name="resumeMediaId"
+              control={control}
+              render={({ field }) => (
+                <MediaPicker
+                  value={field.value ? Number(field.value) : null}
+                  onChange={(mediaId) => field.onChange(mediaId !== null ? String(mediaId) : '')}
+                  kind="RESUME"
+                  label="résumé"
+                />
+              )}
             />
             {errors.resumeMediaId && (
-              <div className="invalid-feedback d-block" role="alert">
+              <div className="text-danger small mt-1" role="alert">
                 {errors.resumeMediaId.message}
               </div>
             )}

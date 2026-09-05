@@ -19,6 +19,7 @@ import { analyticsAdminRouter } from './routes/admin/analytics.routes.js';
 import { assessmentsRouter } from './routes/admin/assessments.routes.js';
 import { auditLogsRouter } from './routes/admin/auditLogs.routes.js';
 import { findingsRouter } from './routes/admin/findings.routes.js';
+import { mediaRouter } from './routes/admin/media.routes.js';
 import { overviewRouter } from './routes/admin/overview.routes.js';
 import { profileRouter as adminProfileRouter } from './routes/admin/profile.routes.js';
 import { projectsRouter as adminProjectsRouter } from './routes/admin/projects.routes.js';
@@ -44,6 +45,7 @@ import { searchRouter } from './routes/public/search.routes.js';
 import { securityRouter } from './routes/public/security.routes.js';
 import { sitemapRouter } from './routes/public/sitemap.routes.js';
 import { statsRouter } from './routes/public/stats.routes.js';
+import { uploadsRouter } from './routes/uploads.routes.js';
 
 /**
  * Builds the Express application without binding a port, so integration tests
@@ -109,6 +111,14 @@ export function createApp(): Express {
   app.use('/api/v1', healthRouter);
   app.use('/api/v1/auth', authRouter);
 
+  // Media files (Phase 9, docs/architecture/01 §3) — bare `/uploads`, never
+  // under `/api/v1`: `lib/mediaUrl.ts`'s `toPublicMediaRef` builds exactly
+  // this path, and `apps/web/next.config.ts`'s `remotePatterns` allow-lists
+  // it the same way. Mounted here, before the public-read rate limiter and
+  // outside the `noStore` prefix below (these responses are meant to be
+  // cached — see the route's own `Cache-Control` header).
+  app.use('/uploads', uploadsRouter);
+
   // Public API (docs/architecture/03 §3, Phase 5). `contentRouter` defines
   // its own sub-paths (/technologies, /skills, /certifications, /experience,
   // /education, /timeline, /social-links, /tags) and mounts at the bare
@@ -150,6 +160,7 @@ export function createApp(): Express {
   app.use('/api/v1/admin/profile', adminProfileRouter);
   app.use('/api/v1/admin/audit-logs', auditLogsRouter);
   app.use('/api/v1/admin/analytics', analyticsAdminRouter);
+  app.use('/api/v1/admin/media', mediaRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

@@ -16,7 +16,7 @@
  * Usage: npm run db:bootstrap -w @portfolio/api
  */
 import { copyFile, mkdir, readFile, stat } from 'node:fs/promises';
-import { extname, join } from 'node:path';
+import { extname, join, resolve } from 'node:path';
 import { z } from 'zod';
 import { hashPassword } from '../src/lib/password.js';
 import { computeSha256, generateStoredFilename } from '../src/lib/storage.js';
@@ -142,7 +142,17 @@ async function bootstrapAvatarMedia(env: z.infer<typeof bootstrapEnvSchema>): Pr
   }
 
   const filename = generateStoredFilename(checksum, extname(sourcePath));
-  const uploadDir = join(process.cwd(), env.UPLOAD_DIR);
+  // `resolve`, not `join`: `UPLOAD_DIR` is an ABSOLUTE path in every real
+  // deployment (`docker-compose.yml`'s own `/data/uploads`, decision D3) —
+  // `join(cwd, '/data/uploads')` would concatenate rather than treat the
+  // leading slash as "start over from root", landing at the nonsensical
+  // `<cwd>/data/uploads` instead. `resolve` returns an absolute second
+  // argument unchanged, exactly like `lib/uploadPath.ts`'s own
+  // `resolveUploadDir()` (Phase 9) already does for every other upload path
+  // in this codebase — this is the one place that predates it and still
+  // had the bug, found via a stray `apps/api/tmp/dev-preview-uploads/`
+  // directory during Phase 9's own end-to-end verification.
+  const uploadDir = resolve(process.cwd(), env.UPLOAD_DIR);
   await mkdir(uploadDir, { recursive: true });
   const destinationPath = join(uploadDir, filename);
   await copyFile(sourcePath, destinationPath);
