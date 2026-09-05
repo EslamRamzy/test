@@ -3,19 +3,19 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 10 of 16 — contact + messages.**
+> **Status: Phase 11 of 16 — search + command palette.**
 > Database (Phase 2), backend foundation (Phase 3), auth (Phase 4), the full public REST API
 > (Phase 5), the full public website carrying the "Amber Signal" visual identity, the admin shell
 > (Phase 7), full admin CRUD for all 13 content modules (Phase 8), a real media library (Phase 9),
-> and now the contact pipeline's admin half: an optional SMTP notification (best-effort — a failed
-> or unconfigured mail server never fails a real submission, proven against a real unreachable host,
-> not a mock) and a full Messages Inbox (`/admin/messages`) — unread/read/archived, a detail pane
-> that auto-marks a message read the moment it's opened, archive, delete with typed-confirmation,
-> and a `mailto:` reply link. The Sidebar's Messages entry — the last of doc07 §51's 14 modules — is
-> enabled, its unread badge live. See [`docs/`](docs/README.md), the
+> contact + messages (Phase 10), and now full-text search everywhere: a `⌘K`/`Ctrl+K` command
+> palette (navigation, dynamic social links, a theme toggle, and a 250ms-debounced live search
+> grouped by type) plus a redesigned `/search` page — both built on the FTS5 index and ranked
+> `/search` endpoint that Phases 2 and 5 already shipped ahead of schedule. Every publish, edit,
+> unpublish, and delete keeps the index in sync, verified across every content type. See
+> [`docs/`](docs/README.md), the
+> [Phase 11 report](docs/phases/phase-11-report.md), the
 > [Phase 10 report](docs/phases/phase-10-report.md), the
-> [Phase 9 report](docs/phases/phase-09-report.md), the
-> [Phase 8 report](docs/phases/phase-08-report.md), and the
+> [Phase 9 report](docs/phases/phase-09-report.md), and the
 > [redesign report](docs/design/amber-signal-redesign.md).
 
 ---

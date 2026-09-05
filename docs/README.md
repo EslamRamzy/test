@@ -1,27 +1,23 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 10 of 16 complete** — contact + messages. The public contact pipeline (already
-> built in an earlier phase — validation, the 3/hour/IP rate limit, the honeypot, the timing check,
-> a generic success response regardless of outcome) gained an optional SMTP admin-notification:
-> `lib/mail.ts` builds `from`/`to`/`replyTo`/`subject` entirely through nodemailer's own structured
-> `sendMail()` fields (proven, with a raw-CRLF-in-subject test, that the header-injection defence is
-> nodemailer's own encoding, not any sanitization here), never throws, and is awaited directly after
-> the message is persisted — so a failed or unconfigured mail server can never fail a real
-> submission, verified against a REAL unreachable SMTP host, not a mock. The admin side is new: a
-> full Messages Inbox (`/admin/messages`, doc07 §3) — search + status filter, a detail pane that
-> auto-marks a message read the moment it opens, mark read/unread, archive, delete gated behind
-> typing the sender's email, and a `mailto:` reply link (no in-app reply-sending, per doc07 §3) —
-> with a complete verb-shaped audit trail (`MESSAGE_MARK_READ`/`MARK_UNREAD`/`ARCHIVE`/`DELETE`).
-> The Sidebar's Messages entry — the last of doc07 §51's 14 modules — is enabled, its unread badge
-> live from the same `useOverview()` query the Dashboard's own counters read. A real conformance gap
-> from Phase 9 was also found and fixed along the way (see the phase report §4) — the media module's
-> PATCH endpoint couldn't change `kind`, and had no dedicated usage-lookup endpoint, though doc03 §5
-> documents both. See the
+> **Status: Phase 11 of 16 complete** — search + command palette. The FTS5 search backend (index-
+> maintenance triggers, the ranked `GET /search` endpoint, draft isolation) turned out to already be
+> fully built and fully tested from Phases 2 and 5 — confirmed against doc03/doc09's own documented
+> contract before writing anything new, the same "research first" principle Phase 10 applied to the
+> contact form. This phase's real, new scope was the command palette doc06 §39 describes: `⌘K`/
+> `Ctrl+K` opens a dialog (built on the same `react-bootstrap` `Modal` primitive `ConfirmDialog`
+> already uses, for a correct focus trap/`Esc`-close/ARIA roles "for free") offering navigation
+> actions, dynamic social links read from the `social_links` table, a theme toggle, and a debounced-
+> 250ms live search grouped by entity type — with full keyboard (`↑`/`↓`/`Enter`) and accessibility
+> test coverage. The whole feature is `next/dynamic({ ssr: false })` and, critically, never even
+> rendered until the very first keypress, so it costs nothing on first paint. The `/search` page
+> itself — the one public route the Amber Signal redesign had skipped — also got a design pass to
+> match. See the
+> [Phase 11 report](phases/phase-11-report.md), the
 > [Phase 10 report](phases/phase-10-report.md), the
-> [Phase 9 report](phases/phase-09-report.md), the
-> [Phase 8 report](phases/phase-08-report.md), and the
-> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 11 (Search + command
-> palette) is unblocked. No open decisions remain that block current work — see
+> [Phase 9 report](phases/phase-09-report.md), and the
+> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 12 (SEO + performance +
+> accessibility) is unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
 > next phase.
@@ -58,6 +54,7 @@
 | 8 | [Content management](phases/phase-08-report.md) |
 | 9 | [Media management](phases/phase-09-report.md) |
 | 10 | [Contact + messages](phases/phase-10-report.md) |
+| 11 | [Search + command palette](phases/phase-11-report.md) |
 
 ## Design
 

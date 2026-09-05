@@ -32,55 +32,57 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const results = query.length >= 2 ? await search({ q: query }) : [];
 
   return (
-    <div className="container py-5">
-      <h1 className="h2 mb-4">Search</h1>
+    <div className="container search-page">
+      <div className="search-page__header">
+        <h1 className="h2 search-page__title">Search</h1>
+        <p className="search-page__subtitle">
+          Look across every project, article, and security writeup at once — press <kbd>⌘K</kbd>{' '}
+          anywhere on the site for the same search without leaving the page.
+        </p>
+      </div>
 
-      <form action="/search" method="get" className="mb-4" role="search">
-        <div className="input-group">
+      <form action="/search" method="get" className="search-page__form" role="search">
+        <div className="search-page__input-group">
           <input
             type="search"
             name="q"
             defaultValue={query}
-            className="form-control"
+            className="search-page__input"
             placeholder="Search projects, articles, research…"
             aria-label="Search"
             minLength={2}
           />
-          <button type="submit" className="btn btn-primary" aria-label="Search">
+          <button type="submit" className="search-page__submit" aria-label="Search">
             <span className="bi bi-search" aria-hidden="true" />
           </button>
         </div>
       </form>
 
       {query.length > 0 && query.length < 2 && (
-        <p style={{ color: 'var(--color-text-muted)' }}>Enter at least 2 characters to search.</p>
+        <p className="search-page__hint">Enter at least 2 characters to search.</p>
       )}
 
       {query.length >= 2 && (
-        <p aria-live="polite" className="small mb-4" style={{ color: 'var(--color-text-muted)' }}>
+        <p aria-live="polite" className="search-page__count">
           {results.length} result{results.length === 1 ? '' : 's'} for &ldquo;{query}&rdquo;
         </p>
       )}
 
       {results.length > 0 && (
-        <ul className="list-unstyled d-flex flex-column gap-3">
+        <ul className="search-page__results">
           {results.map((result) => {
             const basePath = ENTITY_PATH[result.entityType];
             return (
-              <li key={`${result.entityType}-${result.entityId}`} className="border-bottom pb-3">
-                <span className="badge text-bg-secondary fw-normal mb-1">
-                  {ENTITY_LABEL[result.entityType]}
-                </span>
-                <h2 className="h5 mb-1">
+              <li key={`${result.entityType}-${result.entityId}`} className="search-page__result">
+                <span className="search-page__result-badge">{ENTITY_LABEL[result.entityType]}</span>
+                <h2 className="h5 search-page__result-title">
                   {basePath ? (
                     <Link href={`${basePath}/${result.slug}`}>{result.title}</Link>
                   ) : (
                     result.title
                   )}
                 </h2>
-                <p className="mb-0" style={{ color: 'var(--color-text-muted)' }}>
-                  {result.snippet}
-                </p>
+                <p className="search-page__result-snippet">{result.snippet}</p>
               </li>
             );
           })}

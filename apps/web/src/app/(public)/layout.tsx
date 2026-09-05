@@ -3,6 +3,7 @@ import { CustomCursor } from '@/components/layout/CustomCursor';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { PageTransition } from '@/components/layout/PageTransition';
+import { CommandPaletteLauncher } from '@/features/command-palette/CommandPaletteLauncher';
 import { getProfile } from '@/lib/api/endpoints';
 
 /**
@@ -13,7 +14,9 @@ import { getProfile } from '@/lib/api/endpoints';
  *
  * Fetches the profile ONCE, here, and passes the name/social links down —
  * `Header`/`Footer` stay presentational (doc 06 §3: components render,
- * they do not fetch).
+ * they do not fetch). `<CommandPaletteLauncher>` reuses this SAME fetch for
+ * its own dynamic social-link actions (doc06 §39) rather than fetching them
+ * itself a second time.
  */
 export default async function PublicLayout({ children }: { children: ReactNode }) {
   const profile = await getProfile();
@@ -31,6 +34,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
         <PageTransition>{children}</PageTransition>
       </main>
       <Footer siteName={siteName} socialLinks={socialLinks} />
+      <CommandPaletteLauncher socialLinks={socialLinks} />
     </>
   );
 }

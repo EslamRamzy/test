@@ -1,4 +1,10 @@
-import type { AnalyticsViewInput, ApiFailure, ApiSuccess, ContactInput } from '@portfolio/shared';
+import type {
+  AnalyticsViewInput,
+  ApiFailure,
+  ApiSuccess,
+  ContactInput,
+  SearchResultDto,
+} from '@portfolio/shared';
 import { getApiBaseUrl } from '../config';
 import { ApiError } from './ApiError';
 
@@ -55,4 +61,20 @@ export function recordAnalyticsView(input: AnalyticsViewInput): Promise<void> {
     method: 'POST',
     body: JSON.stringify(input),
   });
+}
+
+/**
+ * The command palette's own live search (doc06 §39: "debounced 250ms against
+ * GET /api/v1/search?q="). A browser-side fetch, not `endpoints.ts`'s
+ * `search()` — that one goes through `serverApi.request` (`API_INTERNAL_URL`,
+ * a Server Component/Route Handler concern), which a Client Component cannot
+ * call directly. `/search`'s own rate limit (`searchLimiter`, doc09 §4:
+ * 30/min) is the same limit `next dev`'s SSR-rendered `/search` page already
+ * shares — a debounced 250ms client only makes that bucket easier to stay
+ * under, never harder.
+ */
+export function searchContent(q: string, limit?: number): Promise<SearchResultDto[]> {
+  const params = new URLSearchParams({ q });
+  if (limit !== undefined) params.set('limit', String(limit));
+  return request<SearchResultDto[]>(`/api/v1/search?${params.toString()}`);
 }
