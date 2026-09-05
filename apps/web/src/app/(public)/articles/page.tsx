@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listArticleCategories, listArticles } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 import { ArticleCard } from '@/features/articles/components/ArticleCard';
 import { Pagination } from '@/components/ui/Pagination';
 
 export const metadata: Metadata = {
   title: 'Articles',
   description: 'Writing on software development and application security.',
+  alternates: { canonical: `${getPublicSiteUrl()}/articles` },
 };
 
 interface ArticlesPageProps {

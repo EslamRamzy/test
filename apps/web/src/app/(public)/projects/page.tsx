@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listProjects, listTechnologies } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 import { ProjectCard } from '@/features/projects/components/ProjectCard';
 import { Pagination } from '@/components/ui/Pagination';
 
 export const metadata: Metadata = {
   title: 'Projects',
   description: 'A selection of projects, filterable by category and technology.',
+  alternates: { canonical: `${getPublicSiteUrl()}/projects` },
 };
 
 const PROJECT_CATEGORIES = [

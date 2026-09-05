@@ -16,6 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
     // lets the root layout's own description fallback take over instead
     // of rendering no `<meta name="description">` at all.
     ...(description ? { description } : {}),
+    alternates: { canonical: `${getPublicSiteUrl()}/about` },
   };
 }
 

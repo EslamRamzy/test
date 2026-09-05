@@ -329,6 +329,7 @@ export function CommandPalette({
       centered
       className="command-palette"
       onEntered={() => inputRef.current?.focus()}
+      aria-label="Command palette"
     >
       <div className="command-palette__search">
         <span className="bi bi-search command-palette__search-icon" aria-hidden="true" />

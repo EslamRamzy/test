@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { getProfile } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 import { ContactForm } from '@/features/contact/components/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact',
   description: 'Get in touch.',
+  alternates: { canonical: `${getPublicSiteUrl()}/contact` },
 };
 
 /**

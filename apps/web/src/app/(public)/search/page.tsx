@@ -2,10 +2,15 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import type { SearchResultDto } from '@portfolio/shared';
 import { search } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 
 export const metadata: Metadata = {
   title: 'Search',
   description: 'Search projects, articles, security research, and technologies.',
+  // The base path, not `/search?q=...` — every query string would otherwise
+  // be its own "distinct" canonical URL, and `robots.ts` already excludes
+  // this route from indexing entirely for the same reason.
+  alternates: { canonical: `${getPublicSiteUrl()}/search` },
 };
 
 const ENTITY_PATH: Record<SearchResultDto['entityType'], string | null> = {

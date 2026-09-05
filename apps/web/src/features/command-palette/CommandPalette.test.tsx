@@ -1,5 +1,6 @@
 import type { SearchResultDto, SocialLinkDto } from '@portfolio/shared';
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CommandPalette } from './CommandPalette';
 
@@ -177,4 +178,19 @@ describe('CommandPalette', () => {
     expect(second).toHaveAttribute('aria-selected', 'true');
     expect(first).toHaveAttribute('aria-selected', 'false');
   });
+
+  it('has no detectable accessibility violations (docs/architecture/06 §10)', async () => {
+    // axe-core's own `run()` chunks its work via real `setTimeout` calls
+    // internally — left faked (this file's own `beforeEach` scopes fake
+    // timers to exactly `setTimeout`/`clearTimeout` for the debounce
+    // tests), axe's promise never resolves at all. Nothing else in this
+    // test needs fake timers, so switching back to real ones here is safe.
+    vi.useRealTimers();
+    renderPalette();
+    // `react-bootstrap`'s `Modal` portals into `document.body`, not the
+    // render container `screen` queries default to — scanning `body` is
+    // what actually reaches the portaled dialog content.
+    const results = await axe(document.body);
+    expect(results).toHaveNoViolations();
+  }, 10_000); // axe's own DOM analysis is slow enough in jsdom to need more than the 5s default
 });

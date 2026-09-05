@@ -84,11 +84,32 @@ export function createApp(): Express {
       // with no preload flag.
       strictTransportSecurity: { maxAge: 63_072_000, includeSubDomains: true, preload: true },
       referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
-      // CSP is deliberately left at helmet's built-in default here, not
-      // disabled and not the final policy either: doc09 §2's real,
-      // nonce-based CSP is a Phase 11 rollout (report-only first, then
-      // enforced) — helmet's default self-only policy is a reasonable
-      // interim baseline, not a placeholder to remove without replacing.
+      // The API is a pure JSON + file-serving origin — it never renders HTML
+      // with inline scripts, so unlike the web app (doc09 §2, `proxy.ts`)
+      // there is no per-request nonce to generate here, just a static,
+      // maximally restrictive policy. `useDefaults: false` because helmet's
+      // own defaults still allow e.g. `img-src 'self' data:` — every
+      // directive below is deliberate, not inherited.
+      contentSecurityPolicy: {
+        useDefaults: false,
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'none'"],
+          styleSrc: ["'none'"],
+          // The one real resource this origin serves TO a <img>/browser
+          // context (uploads.routes.ts's Cross-Origin-Resource-Policy
+          // override) — harmless to also describe here for a response that
+          // happened to be interpreted as a document.
+          imgSrc: ["'self'"],
+          fontSrc: ["'none'"],
+          connectSrc: ["'none'"],
+          frameAncestors: ["'none'"],
+          formAction: ["'self'"],
+          baseUri: ["'self'"],
+          objectSrc: ["'none'"],
+          upgradeInsecureRequests: [],
+        },
+      },
     }),
   );
   app.use(permissionsPolicy);

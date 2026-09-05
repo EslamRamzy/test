@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getHome } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 import { Reveal } from '@/components/ui/Reveal';
 import { AboutPreview } from '@/features/home/components/AboutPreview';
 import { ArticlesPreview } from '@/features/home/components/ArticlesPreview';
@@ -26,6 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     // hardcoded default) actually takes over instead of rendering no
     // description tag at all — a real Lighthouse run caught the latter.
     ...(description ? { description } : {}),
+    alternates: { canonical: getPublicSiteUrl() },
   };
 }
 

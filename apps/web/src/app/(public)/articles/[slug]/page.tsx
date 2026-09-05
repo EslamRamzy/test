@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getArticle, listArticles } from '@/lib/api/endpoints';
-import { getPublicSiteUrl } from '@/lib/config';
+import { getArticle, getProfile, listArticles } from '@/lib/api/endpoints';
+import { getApiBaseUrl, getPublicSiteUrl } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown/render';
 import { MarkdownBody } from '@/lib/markdown/MarkdownBody';
 import { formatDate } from '@/lib/utils/formatDate';
@@ -35,10 +35,14 @@ export async function generateMetadata({ params }: ArticlePageProps): Promise<Me
     // No `openGraph.images` — see projects/[slug]/page.tsx's comment: Next
     // resolves the sibling `opengraph-image.tsx` into this automatically,
     // and hand-building the URL guessed the wrong path (verified 404).
+    // `siteName` repeated here — see projects/[slug]/page.tsx's own comment:
+    // defining `openGraph` at all replaces the root layout's default rather
+    // than merging into it.
     openGraph: {
       title: result.title,
       ...(result.excerpt ? { description: result.excerpt } : {}),
       type: 'article',
+      siteName: 'Eslam Ramzy',
     },
   };
 }
@@ -54,13 +58,23 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   // it), so `article` here is everything in `result` except `related`.
   const { related, ...article } = result;
   const html = await renderMarkdown(article.content);
+  const profile = await getProfile().catch(() => null);
 
+  // `image` and `author` are both required/recommended for Google's Article
+  // rich result (developers.google.com/search/docs/appearance/structured-
+  // data/article) — the Rich Results Test flags a `BlogPosting` missing
+  // either. Both are conditional, matching `description`/`datePublished`
+  // below: an article with no cover simply has no `image` here rather than
+  // a broken/empty one, and `author` needs the profile fetch to have
+  // actually succeeded.
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     headline: article.title,
     ...(article.excerpt ? { description: article.excerpt } : {}),
     ...(article.publishedAt ? { datePublished: article.publishedAt } : {}),
+    ...(article.coverMedia ? { image: `${getApiBaseUrl()}${article.coverMedia.url}` } : {}),
+    ...(profile ? { author: { '@type': 'Person', name: profile.fullName } } : {}),
   };
   const siteUrl = getPublicSiteUrl();
   const breadcrumbJsonLd = {

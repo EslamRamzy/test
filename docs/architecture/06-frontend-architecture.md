@@ -202,7 +202,7 @@ shell; it is omitted, and the layout stays coherent.
 | Code splitting | Command palette, syntax highlighter, admin editor all `next/dynamic` |
 | Server Components | Markdown rendering and syntax highlighting happen on the server — zero KB of highlighter shipped to the browser |
 | Pagination | 12 per page on every list |
-| Bundle budget | < 120 KB gzipped first-load JS on public routes, checked in CI with `@next/bundle-analyzer` |
+| Bundle budget | < 120 KB gzipped first-load JS on public routes, checked in CI (`scripts/check-bundle-budget.mjs` — gzips each route's real chunk files from disk directly, not `@next/bundle-analyzer`). **Not currently met**: Phase 12 measured 156–162 KB after a real, verified ~20% reduction (`optimizePackageImports`); the remainder is React 19/Next.js 16's own client hydration runtime, not application code — see `docs/phases/phase-12-report.md` §4/§6. The CI step is informational (`continue-on-error`) until this figure is revisited |
 | Targets | LCP < 2.0 s, CLS < 0.05, INP < 200 ms on a throttled mobile profile |
 
 ## 10. Accessibility (§36)

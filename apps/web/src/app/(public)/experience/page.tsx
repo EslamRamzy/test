@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { listEducation, listExperience } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 import { formatDate } from '@/lib/utils/formatDate';
 
 export const metadata: Metadata = {
   title: 'Experience',
   description: 'Work experience and education.',
+  alternates: { canonical: `${getPublicSiteUrl()}/experience` },
 };
 
 function dateRange(startDate: string, endDate: string | null, isCurrent?: boolean): string {

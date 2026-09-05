@@ -30,8 +30,8 @@ Set by `helmet` at the API and by `next.config.ts` for the web app; the reverse 
 
 ```
 Content-Security-Policy: default-src 'self';
-  script-src 'self' 'nonce-{random}';        # no unsafe-inline, no unsafe-eval
-  style-src 'self' 'nonce-{random}';
+  script-src 'self' 'nonce-{random}' 'strict-dynamic';   # no unsafe-inline, no unsafe-eval
+  style-src 'self' 'unsafe-inline';                      # see "Why style-src is not nonce-based" below
   img-src 'self' data: blob: https://api.eslamramzy.dev;
   font-src 'self';
   connect-src 'self' https://api.eslamramzy.dev;
@@ -50,10 +50,34 @@ Cross-Origin-Resource-Policy: same-origin
 X-Powered-By: <removed>
 ```
 
-CSP is nonce-based, not hash-based, because Next.js injects inline bootstrap scripts; the nonce is
-generated per request in `proxy.ts` and threaded through. It is deployed in
-`Content-Security-Policy-Report-Only` first (Phase 11), then enforced once the report endpoint is
-quiet — an enforced CSP that breaks the site is worse than a measured rollout.
+`script-src` is nonce-based, not hash-based, because Next.js injects inline bootstrap/RSC-payload
+scripts whose content differs per render — a build-time hash cannot cover that, only a per-request
+nonce can. The nonce is generated per request in `proxy.ts` and threaded through (`x-nonce` request
+header, read back via `headers()`); nonces only work on dynamically-rendered pages, so the root
+layout `await connection()`s to opt the whole app into dynamic rendering, trading away static/ISR
+optimisation site-wide (accepted trade-off — see docs/phases/phase-12-report.md "CSP vs. static
+rendering"). It was verified in `Content-Security-Policy-Report-Only` first, then enforced once a
+real headless-browser pass across every public route plus the admin login and the command palette
+showed zero console violations (Phase 12) — an enforced CSP that breaks the site is worse than a
+measured rollout.
+
+**Why `style-src` is not nonce-based**: a CSP nonce only ever covers `<style>` ELEMENTS, never
+inline `style="..."` ATTRIBUTES (confirmed against a real Chromium violation message: "hashes do
+not apply to event handlers, style attributes... unless the 'unsafe-hashes' keyword is present" —
+nonces carry the same element-only restriction). This app has no `<style>` elements, only
+attributes: React's `style={{...}}` (mostly per-item computed values — stagger delays, positions —
+that a build-time hash allow-list cannot cover) and shiki's syntax-highlighted code spans (per-token
+colours, `lib/markdown/render.ts`). A strict nonce-based `style-src` measurably breaks both (248
+violations across every route in a real browser pass, Phase 12) — a real, verified regression, not
+a theoretical one — so `style-src` uses `'unsafe-inline'` instead. `script-src` stays strict with no
+`unsafe-inline`/`unsafe-eval` in production, which is what this doc's own threat model (T5: script
+injection via admin markdown) actually guards against; `rehype-sanitize` already strips `style` from
+every markdown-sourced node except shiki's own trusted output (same file), so this relaxation adds
+no attacker-reachable surface.
+
+The API (a JSON + file-serving origin, never HTML with inline scripts) does not need a nonce at all —
+`helmet`'s `contentSecurityPolicy` there is a static, maximally restrictive policy instead
+(`apps/api/src/app.ts`).
 
 ## 3. CORS — a load-bearing control (decision D1)
 

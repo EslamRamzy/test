@@ -198,7 +198,7 @@ export function MediaPicker({
         </div>
       </div>
 
-      <Modal show={modalOpen} onHide={closeModal} size="lg" centered>
+      <Modal show={modalOpen} onHide={closeModal} size="lg" centered aria-label={`Choose ${label}`}>
         <Modal.Header closeButton>
           <Modal.Title>Choose {label}</Modal.Title>
         </Modal.Header>

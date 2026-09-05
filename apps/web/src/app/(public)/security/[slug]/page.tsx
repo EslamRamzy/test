@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getResearch, listResearch } from '@/lib/api/endpoints';
-import { getPublicSiteUrl } from '@/lib/config';
+import { getProfile, getResearch, listResearch } from '@/lib/api/endpoints';
+import { getApiBaseUrl, getPublicSiteUrl } from '@/lib/config';
 import { renderMarkdown } from '@/lib/markdown/render';
 import { MarkdownBody } from '@/lib/markdown/MarkdownBody';
 import { formatDate } from '@/lib/utils/formatDate';
@@ -34,10 +34,14 @@ export async function generateMetadata({ params }: ResearchPageProps): Promise<M
     // No `openGraph.images` — see projects/[slug]/page.tsx's comment: Next
     // resolves the sibling `opengraph-image.tsx` into this automatically,
     // and hand-building the URL guessed the wrong path (verified 404).
+    // `siteName` repeated here — see projects/[slug]/page.tsx's own comment:
+    // defining `openGraph` at all replaces the root layout's default rather
+    // than merging into it.
     openGraph: {
       title: research.title,
       ...(research.description ? { description: research.description } : {}),
       type: 'article',
+      siteName: 'Eslam Ramzy',
     },
   };
 }
@@ -48,13 +52,23 @@ export default async function ResearchPage({ params }: ResearchPageProps) {
   if (!research) notFound();
 
   const html = await renderMarkdown(research.content);
+  const profile = await getProfile().catch(() => null);
 
+  // `image` and `author` are both required/recommended for Google's Article
+  // rich result (developers.google.com/search/docs/appearance/structured-
+  // data/article) — the Rich Results Test flags an `Article` missing
+  // either. Both are conditional, matching `description`/`datePublished`
+  // below: a write-up with no cover simply has no `image` here rather than
+  // a broken/empty one, and `author` needs the profile fetch to have
+  // actually succeeded.
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: research.title,
     ...(research.description ? { description: research.description } : {}),
     ...(research.publishedAt ? { datePublished: research.publishedAt } : {}),
+    ...(research.coverMedia ? { image: `${getApiBaseUrl()}${research.coverMedia.url}` } : {}),
+    ...(profile ? { author: { '@type': 'Person', name: profile.fullName } } : {}),
   };
   const siteUrl = getPublicSiteUrl();
   const breadcrumbJsonLd = {

@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listResearch } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 import { ResearchCard } from '@/features/security/components/ResearchCard';
 import { Pagination } from '@/components/ui/Pagination';
 
 export const metadata: Metadata = {
   title: 'Security Research',
   description: 'Security research, write-ups, and methodology notes.',
+  alternates: { canonical: `${getPublicSiteUrl()}/security` },
 };
 
 const CATEGORIES = ['RESEARCH', 'WRITEUP', 'METHODOLOGY', 'NOTES', 'TOOL'] as const;

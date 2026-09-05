@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { MediaPicker } from './MediaPicker';
 import { QueryProvider } from './QueryProvider';
@@ -188,4 +189,29 @@ describe('MediaPicker', () => {
       expect(onChange).toHaveBeenCalledWith(42);
     });
   });
+
+  it('has no detectable accessibility violations (docs/architecture/06 §10)', async () => {
+    const fetchMock = vi.fn<typeof fetch>();
+    fetchMock.mockImplementation((input) => {
+      const url = String(input);
+      if (url.includes('/api/v1/admin/media?')) {
+        return Promise.resolve(
+          jsonResponse(200, {
+            success: true,
+            data: [EXISTING_ITEM],
+            meta: { page: 1, pageSize: 12, total: 1, totalPages: 1 },
+          }),
+        );
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    renderPicker(null, vi.fn());
+    fireEvent.click(screen.getByRole('button', { name: /Choose cover image/i }));
+    await screen.findByRole('button', { name: EXISTING_ITEM.altText });
+
+    const results = await axe(document.body);
+    expect(results).toHaveNoViolations();
+  }, 10_000);
 });

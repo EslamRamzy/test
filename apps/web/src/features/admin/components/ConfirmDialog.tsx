@@ -50,7 +50,7 @@ export function ConfirmDialog({
   const canConfirm = !requireTypedConfirmation || typedValue === requireTypedConfirmation;
 
   return (
-    <Modal show={show} onHide={onCancel} centered>
+    <Modal show={show} onHide={onCancel} centered aria-label={title}>
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>

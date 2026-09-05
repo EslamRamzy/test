@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
+import { axe } from 'jest-axe';
 import { describe, expect, it, vi } from 'vitest';
 import { ConfirmDialog } from './ConfirmDialog';
 
@@ -131,4 +132,19 @@ describe('ConfirmDialog', () => {
     expect(screen.getByRole('button', { name: 'Working…' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
   });
+
+  it('has no detectable accessibility violations (docs/architecture/06 §10)', async () => {
+    render(
+      <ConfirmDialog
+        show
+        title="Delete project?"
+        message="This cannot be undone."
+        requireTypedConfirmation="Portfolio Platform"
+        onConfirm={vi.fn()}
+        onCancel={vi.fn()}
+      />,
+    );
+    const results = await axe(document.body);
+    expect(results).toHaveNoViolations();
+  }, 10_000);
 });

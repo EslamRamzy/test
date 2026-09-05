@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { IBM_Plex_Mono, IBM_Plex_Sans, Unbounded } from 'next/font/google';
+import { headers } from 'next/headers';
+import { connection } from 'next/server';
 import { getProfile } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
 import '@/styles/globals.scss';
@@ -60,10 +62,21 @@ export async function generateMetadata(): Promise<Metadata> {
     profile?.settings.find((setting) => setting.key === 'seo.default_description')?.value ??
     FALLBACK_DESCRIPTION;
 
+  const siteName = profile?.fullName ?? 'Eslam Ramzy';
+
   return {
     metadataBase: new URL(getPublicSiteUrl()),
-    title: profile?.fullName ?? 'Eslam Ramzy',
+    title: siteName,
     description,
+    // A route's own `generateMetadata()` that sets ITS OWN `openGraph` object
+    // replaces this ENTIRELY rather than merging into it (Next's metadata
+    // merge is shallow per top-level key — confirmed in Next's own docs), so
+    // this is the fallback every route gets for free only until it defines
+    // one of its own; the three detail pages that do (doc06 §8's per-route
+    // OpenGraph requirement) repeat `siteName` themselves for exactly that
+    // reason.
+    openGraph: { siteName, type: 'website', locale: 'en_US' },
+    twitter: { card: 'summary_large_image' },
   };
 }
 
@@ -91,15 +104,31 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+/**
+ * `await connection()` opts every route in the app into dynamic rendering
+ * (doc09 §2) — a nonce-based CSP requires it (Next's own CSP guide: nonces
+ * are applied "during server-side rendering, based on the CSP header present
+ * in the request... Static pages are generated at build time, when no
+ * request or response headers exist — so no nonce can be injected"). Called
+ * here, in the ROOT layout every route renders through, rather than in each
+ * page individually — Next's dynamic APIs make the whole subtree under the
+ * component that calls them dynamic, so one call here covers the entire
+ * site instead of repeating it per route.
+ */
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  await connection();
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+
   return (
     <html lang="en" className={`${displayFont.variable} ${sansFont.variable} ${monoFont.variable}`}>
       <head>
         {/* Plain JSX children, not dangerouslySetInnerHTML — restricted
             repo-wide to lib/markdown/render.ts (eslint.config.mjs). This
             script is a static string constant with no `<`/`&` in it, so
-            React's usual text-child escaping has nothing to mangle. */}
-        <script>{THEME_INIT_SCRIPT}</script>
+            React's usual text-child escaping has nothing to mangle.
+            `nonce` is what lets this one specific inline script run under
+            doc09 §2's `script-src 'nonce-...'` CSP with no `unsafe-inline`. */}
+        <script nonce={nonce}>{THEME_INIT_SCRIPT}</script>
       </head>
       <body>{children}</body>
     </html>

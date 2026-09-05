@@ -36,7 +36,17 @@ export async function generateMetadata({ params }: ProjectPageProps): Promise<Me
     // Turbopack registers the file-convention image route with a generated
     // hash suffix (`/opengraph-image-<hash>`), not the clean path a human
     // would guess, so constructing it by hand 404s.
-    openGraph: { title: project.title, description: project.shortDescription, type: 'article' },
+    // `siteName` repeated here (not just set once on the root layout) because
+    // defining an `openGraph` object at all REPLACES the parent layout's
+    // entirely rather than merging into it (Next's metadata merge is shallow
+    // per top-level key) — this route needs its own per-route `title`/
+    // `description`/`type`, so it has to carry `siteName` too or lose it.
+    openGraph: {
+      title: project.title,
+      description: project.shortDescription,
+      type: 'article',
+      siteName: 'Eslam Ramzy',
+    },
   };
 }
 

@@ -81,6 +81,21 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
 
+  experimental: {
+    // This codebase already imports react-bootstrap by subpath everywhere it
+    // controls the import site (`react-bootstrap/Button`, docs/architecture
+    // component convention) — that alone doesn't stop the package's OWN
+    // internal modules from re-importing their siblings through its barrel
+    // `index`, which still pulls the whole component tree into the graph.
+    // Verified empirically: this one entry measured ~42 KB gzipped off every
+    // public route's first load (docs/phases/phase-12-report.md "Bundle
+    // budget"). `@tanstack/react-query` and `react-hook-form` were tried the
+    // same way and measured zero effect on the public routes (both are
+    // already admin-only and correctly code-split away from them) — left out
+    // rather than kept for a change that doesn't do anything.
+    optimizePackageImports: ['react-bootstrap'],
+  },
+
   // No top-level `eslint` key: Next.js 16 no longer recognises one (verified
   // against a real "Unrecognized key(s)" build warning) — lint already runs
   // as its own CI job independently of the build.

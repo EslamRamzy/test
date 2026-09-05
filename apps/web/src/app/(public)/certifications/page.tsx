@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { listCertifications } from '@/lib/api/endpoints';
+import { getPublicSiteUrl } from '@/lib/config';
 import { PublicMediaImage } from '@/components/ui/PublicMediaImage';
 import { formatDate } from '@/lib/utils/formatDate';
 
 export const metadata: Metadata = {
   title: 'Certifications',
   description: 'Professional certifications and credentials.',
+  alternates: { canonical: `${getPublicSiteUrl()}/certifications` },
 };
 
 export default async function CertificationsPage() {
