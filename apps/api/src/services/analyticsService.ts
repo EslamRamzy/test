@@ -1,4 +1,5 @@
 import type { AnalyticsAdminQuery, AnalyticsViewInput } from '@portfolio/shared';
+import { env } from '../config/env.js';
 import * as articleRepository from '../repositories/articleRepository.js';
 import * as pageViewRepository from '../repositories/pageViewRepository.js';
 import * as projectRepository from '../repositories/projectRepository.js';
@@ -9,8 +10,17 @@ export interface AnalyticsContext {
   userAgent: string | undefined;
 }
 
-/** Fire-and-forget page-view beacon (docs/architecture/03 §3, §09 §10) — no raw IP is ever stored, only its daily-rotating hash. */
+/**
+ * Fire-and-forget page-view beacon (docs/architecture/03 §3, doc09 §10) —
+ * no raw IP is ever stored, only its daily-rotating hash. A no-op (still
+ * `undefined`, still a `204` at the controller) when `ENABLE_ANALYTICS` is
+ * off — the site owner's opt-out applies at the one place every beacon call
+ * passes through, so nothing upstream (rate limiting, validation) needs to
+ * know or care that collection is disabled.
+ */
 export async function recordView(input: AnalyticsViewInput, ctx: AnalyticsContext): Promise<void> {
+  if (!env.ENABLE_ANALYTICS) return;
+
   await pageViewRepository.create({
     path: input.path,
     entityType: input.entityType,

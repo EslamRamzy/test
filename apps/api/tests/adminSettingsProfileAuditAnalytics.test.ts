@@ -226,6 +226,24 @@ describe('/api/v1/admin/audit-logs', () => {
     const body = res.body as { meta: { pageSize: number } };
     expect(body.meta.pageSize).toBeLessThan(99999);
   });
+
+  it('has no write path at all — doc07 §3: "No create/edit/delete anywhere in the UI" (doc11 Phase 13 exit criterion)', async () => {
+    const { cookie, ip, csrfToken } = await loginAsAdmin(app, ORIGIN);
+    for (const method of ['post', 'put', 'patch', 'delete'] as const) {
+      const res = await request(app)
+        [method]('/api/v1/admin/audit-logs')
+        .set('X-Forwarded-For', ip)
+        .set('Origin', ORIGIN)
+        .set('Cookie', cookie)
+        .set('X-CSRF-Token', csrfToken)
+        .send({});
+      // 404 (no route registered for the method at all) is what this
+      // router actually returns — Express's default behaviour for a path
+      // that exists under GET but no other method — confirmed against
+      // `routes/admin/auditLogs.routes.ts`, which mounts only `.get('/')`.
+      expect(res.status).toBe(404);
+    }
+  });
 });
 
 describe('/api/v1/admin/analytics', () => {

@@ -3,19 +3,21 @@
 A personal portfolio platform: a public site, a full admin dashboard, and a REST API over SQLite.
 The goal is that adding a project, article or security writeup never requires touching source code.
 
-> **Status: Phase 12 of 16 — SEO, performance, accessibility, CSP.**
+> **Status: Phase 13 of 16 — analytics + audit UI.**
 > Database (Phase 2), backend foundation (Phase 3), auth (Phase 4), the full public REST API
 > (Phase 5), the full public website carrying the "Amber Signal" visual identity, the admin shell
 > (Phase 7), full admin CRUD for all 13 content modules (Phase 8), a real media library (Phase 9),
-> contact + messages (Phase 10), full-text search + a `⌘K`/`Ctrl+K` command palette (Phase 11), and
-> now: canonical URLs and `/.well-known/security.txt`, a jest-axe accessibility pass (three real
-> dialog-naming bugs found and fixed), a bundle-budget measurement tool (a real, documented gap — see
-> the report), and a full nonce-based CSP enforced site-wide with zero verified console violations.
-> Lighthouse scores 100/100 SEO and Accessibility on every real content route. See
+> contact + messages (Phase 10), full-text search + a `⌘K`/`Ctrl+K` command palette (Phase 11), SEO +
+> performance + accessibility + a nonce-based CSP (Phase 12), and now: the privacy-preserving page-view
+> beacon actually wired into every public page (it existed since an earlier phase but nothing ever
+> called it), a nightly rollup + 90-day purge job, and an `ENABLE_ANALYTICS` opt-out — closing the last
+> real gaps in an analytics/audit-log system whose admin UI and backend were mostly already shipped
+> ahead of schedule in Phase 8. A real, pre-existing date-boundary bug in the analytics queries was
+> found and fixed along the way. See
 > [`docs/`](docs/README.md), the
+> [Phase 13 report](docs/phases/phase-13-report.md), the
 > [Phase 12 report](docs/phases/phase-12-report.md), the
-> [Phase 11 report](docs/phases/phase-11-report.md), the
-> [Phase 10 report](docs/phases/phase-10-report.md), and the
+> [Phase 11 report](docs/phases/phase-11-report.md), and the
 > [redesign report](docs/design/amber-signal-redesign.md).
 
 ---

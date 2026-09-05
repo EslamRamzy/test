@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { SearchResultDto } from '@portfolio/shared';
 import { search } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 
 export const metadata: Metadata = {
   title: 'Search',
@@ -38,6 +39,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   return (
     <div className="container search-page">
+      <AnalyticsBeacon entityType="PAGE" />
       <div className="search-page__header">
         <h1 className="h2 search-page__title">Search</h1>
         <p className="search-page__subtitle">

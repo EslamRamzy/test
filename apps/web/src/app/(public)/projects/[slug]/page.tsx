@@ -7,6 +7,7 @@ import { renderMarkdown } from '@/lib/markdown/render';
 import { MarkdownBody } from '@/lib/markdown/MarkdownBody';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { PublicMediaImage } from '@/components/ui/PublicMediaImage';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { ProjectCard } from '@/features/projects/components/ProjectCard';
 import { SecurityAssessmentCard } from '@/features/projects/components/SecurityAssessmentCard';
 
@@ -87,6 +88,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
   return (
     <article className="container py-5">
+      <AnalyticsBeacon entityType="PROJECT" entityId={project.id} />
       <JsonLd data={jsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
 

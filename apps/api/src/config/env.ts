@@ -153,6 +153,20 @@ export const envSchema = z
       .default('false')
       .transform((value) => value === 'true'),
 
+    /**
+     * Gates whether `POST /analytics/view` actually stores anything (doc09
+     * §10, Phase 13) — enabled by default, so a site owner who wants zero
+     * visitor tracking at all can flip one env var and every beacon call
+     * still returns its normal `204` (a disabled endpoint the client can
+     * detect is itself a signal; a silent no-op is not). Has shipped in
+     * `.env.example` since Phase 1 anticipating exactly this, but nothing
+     * actually read it until now.
+     */
+    ENABLE_ANALYTICS: z
+      .enum(['true', 'false'])
+      .default('true')
+      .transform((value) => value === 'true'),
+
     // -------------------------------------------------------------------------
     // Uploads (docs/architecture/09 §7) — Phase 9. Relative to `process.cwd()`
     // (`apps/api/` locally, `/app` in the container), same convention as

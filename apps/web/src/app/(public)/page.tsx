@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getHome } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
 import { Reveal } from '@/components/ui/Reveal';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { AboutPreview } from '@/features/home/components/AboutPreview';
 import { ArticlesPreview } from '@/features/home/components/ArticlesPreview';
 import { ContactCta } from '@/features/home/components/ContactCta';
@@ -46,6 +47,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <AnalyticsBeacon entityType="PAGE" />
       {/* Hero stays un-revealed — it's above the fold on load, so a
           scroll-triggered fade would just delay the first thing a visitor
           sees instead of animating an entrance. Every section below it is

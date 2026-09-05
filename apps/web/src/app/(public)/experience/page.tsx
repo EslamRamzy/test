@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { listEducation, listExperience } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { formatDate } from '@/lib/utils/formatDate';
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default async function ExperiencePage() {
 
   return (
     <div className="container py-5">
+      <AnalyticsBeacon entityType="PAGE" />
       <h1 className="h2 mb-4">Experience</h1>
 
       {experience.length === 0 ? (

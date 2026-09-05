@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getProfile } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { ContactForm } from '@/features/contact/components/ContactForm';
 
 export const metadata: Metadata = {
@@ -18,6 +19,7 @@ export default async function ContactPage() {
 
   return (
     <div className="container contact-page">
+      <AnalyticsBeacon entityType="PAGE" />
       {/* No `g-*` gutter utility — see Hero.tsx's comment: it overflows past
           `.container`'s own fixed padding at narrow viewports (confirmed at
           320px, the same bug already found and fixed on the homepage). */}

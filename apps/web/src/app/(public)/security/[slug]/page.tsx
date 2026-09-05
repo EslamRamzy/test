@@ -8,6 +8,7 @@ import { MarkdownBody } from '@/lib/markdown/MarkdownBody';
 import { formatDate } from '@/lib/utils/formatDate';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { PublicMediaImage } from '@/components/ui/PublicMediaImage';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 
 interface ResearchPageProps {
   params: Promise<{ slug: string }>;
@@ -87,6 +88,7 @@ export default async function ResearchPage({ params }: ResearchPageProps) {
 
   return (
     <article className="container py-5 tone-security">
+      <AnalyticsBeacon entityType="RESEARCH" entityId={research.id} />
       <JsonLd data={jsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
       <nav aria-label="Breadcrumb" className="mb-3">

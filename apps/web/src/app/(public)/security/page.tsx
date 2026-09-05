@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listResearch } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { ResearchCard } from '@/features/security/components/ResearchCard';
 import { Pagination } from '@/components/ui/Pagination';
 
@@ -43,6 +44,7 @@ export default async function SecurityPage({ searchParams }: SecurityPageProps) 
 
   return (
     <div className="container py-5 tone-security">
+      <AnalyticsBeacon entityType="PAGE" />
       <h1 className="h2 mb-4">Security Research</h1>
 
       <div className="d-flex flex-wrap gap-2 mb-4" role="group" aria-label="Filter by category">

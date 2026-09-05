@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listArticleCategories, listArticles } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { ArticleCard } from '@/features/articles/components/ArticleCard';
 import { Pagination } from '@/components/ui/Pagination';
 
@@ -37,6 +38,7 @@ export default async function ArticlesPage({ searchParams }: ArticlesPageProps) 
 
   return (
     <div className="container py-5">
+      <AnalyticsBeacon entityType="PAGE" />
       <h1 className="h2 mb-4">Articles</h1>
 
       {categories.length > 0 && (

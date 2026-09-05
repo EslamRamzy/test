@@ -11,14 +11,31 @@ import { prisma } from '../config/prisma.js';
  * format string itself (chosen from the fixed `groupBy` enum, but bound
  * the same safe way regardless).
  *
- * There is deliberately no read from `analytics_daily` here — nothing in
- * this codebase populates that rollup table yet (no cron/job infrastructure
- * exists for it), so querying it would just return empty. Computing
- * directly from `page_views` is correct today and is what "don't build
- * ahead of need" (doc's own recurring principle, e.g. `rateLimit.ts`'s
- * upload-limiter deferral) argues for; a future rollup job could populate
- * `analytics_daily` and this file would switch to reading it once the
- * volume actually justifies it.
+ * `analytics_daily` is now populated (Phase 13's nightly rollup,
+ * `analyticsRollupService.ts`), but the admin overview above still reads
+ * directly from raw `page_views` rather than the rollup table — the same
+ * "don't build ahead of need" reasoning as before: a portfolio site's own
+ * traffic volume doesn't yet justify a second query path, and `page_views`
+ * stays complete for the full 90-day retention window the rollup honours.
+ * A future switch to reading `analytics_daily` is still a fine idea once
+ * volume actually calls for it; `aggregateForDay` below exists purely to
+ * feed rows INTO that table, not to read them back out of it.
+ *
+ * Every `created_at` comparison below wraps BOTH sides in SQLite's own
+ * `datetime()` — a real, verified bug (found while testing Phase 13's
+ * rollup, which compares against exact day boundaries far more often than
+ * the admin dashboard's own `from`/`to` ever line up with a real row): the
+ * SQLite column is stored as TEXT ending in `+00:00` (confirmed directly —
+ * `SELECT typeof(created_at), CAST(created_at AS TEXT) ...`), but
+ * `Date.prototype.toISOString()` produces a `Z`-suffixed string instead.
+ * Lexicographically, `'+00:00'` sorts BEFORE `'Z'`, so a plain `created_at
+ * >= '...Z'` string comparison silently EXCLUDES a row whose timestamp is
+ * exactly equal to the bound, and a plain `created_at <= '...Z'` silently
+ * INCLUDES a row that lands exactly on the NEXT interval's own start —
+ * every boundary is off by one string-sort position in exactly the wrong
+ * direction. `datetime(...)` on both sides normalises the format before
+ * comparing, which is unaffected by which ISO8601 UTC suffix either side
+ * happens to use.
  */
 
 const STRFTIME_FORMAT: Record<'day' | 'week' | 'month', string> = {
@@ -54,7 +71,8 @@ export async function findSeries(
            COUNT(*) AS views,
            COUNT(DISTINCT visitor_hash) AS unique_visitors
     FROM page_views
-    WHERE created_at >= ${range.from.toISOString()} AND created_at <= ${range.to.toISOString()}
+    WHERE datetime(created_at) >= datetime(${range.from.toISOString()})
+      AND datetime(created_at) <= datetime(${range.to.toISOString()})
     GROUP BY bucket
     ORDER BY bucket ASC
   `;
@@ -71,7 +89,8 @@ export async function findTotals(
   const rows = await prisma.$queryRaw<[{ views: bigint; unique_visitors: bigint }]>`
     SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_hash) AS unique_visitors
     FROM page_views
-    WHERE created_at >= ${range.from.toISOString()} AND created_at <= ${range.to.toISOString()}
+    WHERE datetime(created_at) >= datetime(${range.from.toISOString()})
+      AND datetime(created_at) <= datetime(${range.to.toISOString()})
   `;
   const row = rows[0];
   return { totalViews: Number(row?.views ?? 0), uniqueVisitors: Number(row?.unique_visitors ?? 0) };
@@ -95,7 +114,8 @@ export async function findTopContent(
   const rows = await prisma.$queryRaw<RawTopContentRow[]>`
     SELECT entity_id, COUNT(*) AS views
     FROM page_views
-    WHERE created_at >= ${range.from.toISOString()} AND created_at <= ${range.to.toISOString()}
+    WHERE datetime(created_at) >= datetime(${range.from.toISOString()})
+      AND datetime(created_at) <= datetime(${range.to.toISOString()})
       AND entity_type = ${entityType} AND entity_id IS NOT NULL
     GROUP BY entity_id
     ORDER BY views DESC
@@ -121,7 +141,8 @@ export async function findTopReferrerHosts(
   const rows = await prisma.$queryRaw<RawReferrerRow[]>`
     SELECT referrer_host, COUNT(*) AS views
     FROM page_views
-    WHERE created_at >= ${range.from.toISOString()} AND created_at <= ${range.to.toISOString()}
+    WHERE datetime(created_at) >= datetime(${range.from.toISOString()})
+      AND datetime(created_at) <= datetime(${range.to.toISOString()})
       AND referrer_host IS NOT NULL
     GROUP BY referrer_host
     ORDER BY views DESC
@@ -148,4 +169,53 @@ export function create(input: CreatePageViewInput) {
       visitorHash: input.visitorHash,
     },
   });
+}
+
+interface RawDailyAggregateRow {
+  path: string;
+  entity_type: string | null;
+  entity_id: number | null;
+  views: bigint;
+  unique_visitors: bigint;
+}
+
+export interface DailyAggregateRow {
+  path: string;
+  entityType: string | null;
+  entityId: number | null;
+  views: number;
+  uniqueVisitors: number;
+}
+
+/**
+ * The nightly rollup's own read (doc09 §10 — "Raw `page_views` rows are
+ * rolled up nightly into `analytics_daily`"): every distinct (path,
+ * entityType, entityId) group that had at least one view within
+ * `[dayStart, dayEnd)` — a half-open interval so a view landing exactly on
+ * `dayEnd` (the next day's own midnight) is never double-counted between
+ * two adjacent days.
+ */
+export async function aggregateForDay(dayStart: Date, dayEnd: Date): Promise<DailyAggregateRow[]> {
+  const rows = await prisma.$queryRaw<RawDailyAggregateRow[]>`
+    SELECT path, entity_type, entity_id,
+           COUNT(*) AS views,
+           COUNT(DISTINCT visitor_hash) AS unique_visitors
+    FROM page_views
+    WHERE datetime(created_at) >= datetime(${dayStart.toISOString()})
+      AND datetime(created_at) < datetime(${dayEnd.toISOString()})
+    GROUP BY path, entity_type, entity_id
+  `;
+  return rows.map((row) => ({
+    path: row.path,
+    entityType: row.entity_type,
+    entityId: row.entity_id === null ? null : Number(row.entity_id),
+    views: Number(row.views),
+    uniqueVisitors: Number(row.unique_visitors),
+  }));
+}
+
+/** The purge half of the same retention rule — "deleted after 90 days" (doc09 §10). Returns the count actually removed, for the rollup job's own log line. */
+export async function deleteOlderThan(cutoff: Date): Promise<number> {
+  const result = await prisma.pageView.deleteMany({ where: { createdAt: { lt: cutoff } } });
+  return result.count;
 }

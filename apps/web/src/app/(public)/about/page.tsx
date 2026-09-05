@@ -4,6 +4,7 @@ import { getProfile, listSkillCategories } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { PublicMediaImage } from '@/components/ui/PublicMediaImage';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { SkillsPreview } from '@/features/home/components/SkillsPreview';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,6 +46,7 @@ export default async function AboutPage() {
 
   return (
     <>
+      <AnalyticsBeacon entityType="PAGE" />
       <JsonLd data={jsonLd} />
       <section className="py-5 border-bottom">
         <div className="container">

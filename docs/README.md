@@ -1,24 +1,24 @@
 # Eslam Ramzy — Portfolio Platform · Documentation
 
-> **Status: Phase 12 of 16 complete** — SEO, performance, accessibility, CSP. "Research first" found
-> most of doc06 §8–9's SEO surface already shipped by earlier phases (`generateMetadata()`, OG images,
-> sitemap/robots, JSON-LD); this phase's real, new scope was canonical URLs on the routes still
-> missing one, `/.well-known/security.txt`, a jest-axe accessibility pass (three real dialog-naming
-> bugs found and fixed — `CommandPalette`, `ConfirmDialog`, `MediaPicker`), a bundle-budget
-> measurement tool, and the entire nonce-based CSP doc09 §2 describes, which did not exist before this
-> phase. CSP is enforced with zero verified console violations across every public route (plus the
-> admin login and the command palette) — a real headless-browser pass first caught 248 violations from
-> a literal `style-src 'self' 'nonce-{random}'` (nonces don't cover inline style ATTRIBUTES, only
-> `<style>` elements), fixed by relaxing `style-src` to `'unsafe-inline'` while keeping `script-src`
-> strict. Lighthouse scores 100/100 SEO and Accessibility on every real content route. One exit
-> criterion is an honest miss: all public routes measure 156–162 KB gzipped first-load JS against
-> doc06 §9's 120 KB budget, even after a genuine ~20% reduction (`optimizePackageImports`) — the
-> remainder is a verified React 19/Next.js 16 framework floor, not application code, documented rather
-> than papered over by raising the budget number. See the
+> **Status: Phase 13 of 16 complete** — analytics + audit UI. "Research first" found that most of
+> doc11 Phase 13's own deliverable list was already shipped, ahead of schedule, as part of Phase 8's
+> "Settings, Profile, Audit Logs, Analytics endpoints/pages": the schema, the beacon endpoint, both
+> admin read endpoints, the daily-rotating salted-hash IP scheme, and both admin UI pages. What
+> genuinely did not exist: the beacon fetcher was dead code (built, never called by a single public
+> page); nothing populated `analytics_daily` at all (no rollup job existed); and `ENABLE_ANALYTICS`,
+> documented since Phase 1, was read nowhere. This phase closed exactly those three gaps —
+> `<AnalyticsBeacon>` now renders on all 12 public pages, a nightly rollup + 90-day purge job runs in
+> `server.ts`, and the env flag actually gates collection — plus found and fixed a real, pre-existing
+> bug along the way: `pageViewRepository.ts`'s raw SQL date comparisons silently mis-included/excluded
+> rows landing exactly on a range boundary (a `+00:00` vs. `Z` UTC-suffix string-comparison mismatch),
+> fixed with SQLite's own `datetime()` normalisation across all five affected queries. Both new exit
+> criteria — "no raw IP anywhere in the database" and "audit viewer has no write path" — are now
+> asserted by test, not just inspected by reading the code, and the rollup/purge was verified against
+> real seeded data spanning the 90-day retention boundary, not just mocked. See the
+> [Phase 13 report](phases/phase-13-report.md), the
 > [Phase 12 report](phases/phase-12-report.md), the
-> [Phase 11 report](phases/phase-11-report.md), the
-> [Phase 10 report](phases/phase-10-report.md), and the
-> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 13 (Security Testing) is
+> [Phase 11 report](phases/phase-11-report.md), and the
+> [Amber Signal redesign report](design/amber-signal-redesign.md). Phase 14 (Testing hardening) is
 > unblocked. No open decisions remain that block current work — see
 > [12](architecture/12-decisions-pending-approval.md) for the small number still open (including D12,
 > two-factor authentication — proposed, never approved, not implemented), none of which gate the
@@ -58,6 +58,7 @@
 | 10 | [Contact + messages](phases/phase-10-report.md) |
 | 11 | [Search + command palette](phases/phase-11-report.md) |
 | 12 | [SEO, performance, accessibility, CSP](phases/phase-12-report.md) |
+| 13 | [Analytics + audit UI](phases/phase-13-report.md) |
 
 ## Design
 

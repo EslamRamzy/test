@@ -8,6 +8,7 @@ import { MarkdownBody } from '@/lib/markdown/MarkdownBody';
 import { formatDate } from '@/lib/utils/formatDate';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { PublicMediaImage } from '@/components/ui/PublicMediaImage';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { ArticleCard } from '@/features/articles/components/ArticleCard';
 
 interface ArticlePageProps {
@@ -93,6 +94,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <article className="container py-5">
+      <AnalyticsBeacon entityType="ARTICLE" entityId={article.id} />
       <JsonLd data={jsonLd} />
       <JsonLd data={breadcrumbJsonLd} />
 

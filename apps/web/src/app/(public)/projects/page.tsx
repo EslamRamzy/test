@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { listProjects, listTechnologies } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { ProjectCard } from '@/features/projects/components/ProjectCard';
 import { Pagination } from '@/components/ui/Pagination';
 
@@ -62,6 +63,7 @@ export default async function ProjectsPage({ searchParams }: ProjectsPageProps) 
 
   return (
     <div className="container py-5">
+      <AnalyticsBeacon entityType="PAGE" />
       <h1 className="h2 mb-4">Projects</h1>
 
       <div className="d-flex flex-wrap gap-2 mb-4" role="group" aria-label="Filter by category">

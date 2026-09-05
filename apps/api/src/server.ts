@@ -1,6 +1,7 @@
 import { createApp } from './app.js';
 import { env } from './config/env.js';
 import { applyDatabasePragmas, disconnectDatabase } from './config/prisma.js';
+import { startAnalyticsRollupScheduler } from './jobs/scheduler.js';
 import { ping } from './repositories/healthRepository.js';
 
 async function main(): Promise<void> {
@@ -33,9 +34,15 @@ async function main(): Promise<void> {
     console.log(`API listening on http://localhost:${String(env.PORT)} [${env.NODE_ENV}]`);
   });
 
+  // Only here, never in createApp() — see jobs/scheduler.ts's own header
+  // comment for why that matters (every test in this repo imports createApp
+  // directly, never server.ts).
+  const scheduler = startAnalyticsRollupScheduler();
+
   function shutdown(signal: string): void {
     // eslint-disable-next-line no-console -- replaced by the pino logger in Phase 3
     console.log(`${signal} received, closing server`);
+    scheduler.stop();
     server.close(() => {
       void disconnectDatabase().finally(() => {
         process.exit(0);

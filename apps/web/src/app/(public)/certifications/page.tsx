@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { listCertifications } from '@/lib/api/endpoints';
 import { getPublicSiteUrl } from '@/lib/config';
 import { PublicMediaImage } from '@/components/ui/PublicMediaImage';
+import { AnalyticsBeacon } from '@/features/analytics/AnalyticsBeacon';
 import { formatDate } from '@/lib/utils/formatDate';
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default async function CertificationsPage() {
 
   return (
     <div className="container py-5">
+      <AnalyticsBeacon entityType="PAGE" />
       <h1 className="h2 mb-4">Certifications</h1>
 
       {certifications.length === 0 ? (
